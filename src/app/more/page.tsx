@@ -9,6 +9,7 @@ import { ACHIEVEMENTS } from "@/lib/seed";
 import {
   BookOpen,
   Download,
+  Heart,
   Map,
   Moon,
   NotebookPen,
@@ -89,6 +90,9 @@ function MoreInner() {
 
       <p className="mt-6 text-center text-[11px] text-faint">
         Project Aesthetic · your data never leaves this device
+      </p>
+      <p className="label-mono mt-3 flex items-center justify-center gap-1.5 text-[9px] text-faint">
+        Made with <Heart size={10} className="fill-accent text-accent" /> sashankbanda
       </p>
     </>
   );
