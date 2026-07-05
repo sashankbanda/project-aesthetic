@@ -436,7 +436,7 @@ export function GlyphMatrix({
   frames,
   fps = 5,
   cell = 5,
-  color = "#f4f4f2",
+  color = "var(--color-ink)",
   className = "",
 }: {
   frames: string[][];
@@ -465,7 +465,7 @@ export function GlyphMatrix({
       width={cols * cell}
       height={rows * cell}
       className={className}
-      style={{ filter: `drop-shadow(0 0 ${cell}px ${color}44)` }}
+      style={{ filter: `drop-shadow(0 0 ${cell}px color-mix(in srgb, ${color} 27%, transparent))` }}
       aria-hidden
     >
       {frame.flatMap((row, y) =>
@@ -489,7 +489,7 @@ export function GlyphMatrix({
 /** Procedural loader — a dot with a fading tail orbiting a matrix ring. */
 export function GlyphSpinner({
   cell = 5,
-  color = "#f4f4f2",
+  color = "var(--color-ink)",
   className = "",
 }: {
   cell?: number;
@@ -525,7 +525,7 @@ export function GlyphSpinner({
       width={SIZE * cell}
       height={SIZE * cell}
       className={className}
-      style={{ filter: `drop-shadow(0 0 ${cell}px ${color}44)` }}
+      style={{ filter: `drop-shadow(0 0 ${cell}px color-mix(in srgb, ${color} 27%, transparent))` }}
       aria-label="loading"
       role="img"
     >

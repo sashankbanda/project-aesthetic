@@ -470,7 +470,7 @@ function ElapsedClock({ startedAt, stoppedAt }: { startedAt: string; stoppedAt?:
         <Timer size={15} className="text-good" />
       ) : (
         /* live session — the dumbbell does reps inside the chip */
-        <GlyphMatrix frames={DUMBBELL_FRAMES} fps={4} cell={1.9} color="#ff4b2f" />
+        <GlyphMatrix frames={DUMBBELL_FRAMES} fps={4} cell={1.9} color="var(--color-accent)" />
       )}
       {hh > 0 ? `${hh}:${String(mm % 60).padStart(2, "0")}:` : `${mm}:`}
       {String(s % 60).padStart(2, "0")}
@@ -515,7 +515,7 @@ function SessionSummary({
       <button aria-label="close" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="rise-in card relative max-h-[85vh] w-full max-w-sm overflow-y-auto border-accent/25 p-6 shadow-2xl shadow-black/70">
         <div className="text-center">
-          <GlyphMatrix frames={CHECK_FRAMES} fps={4} cell={5} color="#ff4b2f" className="mx-auto" />
+          <GlyphMatrix frames={CHECK_FRAMES} fps={4} cell={5} color="var(--color-accent)" className="mx-auto" />
           <div className="mt-3 text-xl font-light">Workout Complete</div>
           {report && report.hasTimestamps && (
             <>
@@ -523,7 +523,13 @@ function SessionSummary({
                 <DotNumber
                   value={`${Math.round(report.score * 100)}%`}
                   cell={7}
-                  color={report.score >= 0.7 ? "#34d399" : report.score >= 0.5 ? "#fbbf24" : "#f87171"}
+                  color={
+                    report.score >= 0.7
+                      ? "var(--color-good)"
+                      : report.score >= 0.5
+                        ? "var(--color-warn)"
+                        : "var(--color-bad)"
+                  }
                 />
               </div>
               <div
@@ -599,7 +605,7 @@ function SessionSummary({
 
         {achievements.length > 0 && (
           <div className="mt-4 flex items-center gap-3.5 rounded-2xl border border-warn/25 bg-warn/10 px-4 py-3">
-            <GlyphMatrix frames={TROPHY_FRAMES} fps={3} cell={3.2} color="#d9a13b" className="shrink-0" />
+            <GlyphMatrix frames={TROPHY_FRAMES} fps={3} cell={3.2} color="var(--color-warn)" className="shrink-0" />
             <div>
               <div className="label-mono text-[9px] text-warn">Unlocked</div>
               <div className="mt-0.5 text-[13px] text-ink">{achievements.join(" · ")}</div>
@@ -686,19 +692,19 @@ function RestPopup({
         onClick={onSkip}
       />
       <div className="rise-in tile-dark relative w-full max-w-xs p-7 text-center shadow-2xl shadow-black/80">
-        <div className="dot-texture text-white" />
+        <div className="dot-texture text-ink" />
         <div className="relative">
           <div className="relative mx-auto grid h-40 w-40 place-items-center">
             {/* dotted progress ring — accent sweeps as rest elapses */}
             <svg viewBox="0 0 140 140" className="absolute inset-0 -rotate-90">
               <circle
                 cx="70" cy="70" r={R} fill="none"
-                stroke="rgba(255,255,255,0.14)" strokeWidth="3"
+                stroke="color-mix(in srgb, var(--color-ink) 14%, transparent)" strokeWidth="3"
                 strokeLinecap="round" strokeDasharray="0.5 7.5"
               />
               <circle
                 cx="70" cy="70" r={R} fill="none"
-                stroke={finished ? "var(--color-accent)" : "#f4f4f2"}
+                stroke={finished ? "var(--color-accent)" : "var(--color-ink)"}
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={`${C * (finished ? 1 : left / total)} ${C}`}
@@ -706,7 +712,7 @@ function RestPopup({
               />
             </svg>
             {finished ? (
-              <GlyphMatrix frames={CHECK_FRAMES} fps={5} cell={7} color="#ff4b2f" />
+              <GlyphMatrix frames={CHECK_FRAMES} fps={5} cell={7} color="var(--color-accent)" />
             ) : (
               <DotNumber value={`${mm}:${ss}`} cell={mm >= 10 ? 4.5 : 5.5} ghost={false} />
             )}
@@ -824,7 +830,7 @@ function ExerciseCard({
           <div
             className={`mt-3.5 flex items-start gap-2.5 rounded-2xl border px-3.5 py-2.5 text-[13px] leading-snug ${
               advice.kind === "increase"
-                ? "border-accent/40 bg-accent/10 text-[#ffc9bf]"
+                ? "border-accent/40 bg-accent/10 text-(--accent-soft)"
                 : advice.kind === "hold"
                   ? "border-line bg-card2 text-warn"
                   : "border-line bg-card2 text-dim"
@@ -855,7 +861,7 @@ function ExerciseCard({
               const done = row?.done ?? false;
               const editing = editingSet === si;
               return (
-                <div key={si} className={`rounded-2xl border transition ${done ? "border-ink/25 bg-white/[0.04]" : "border-line bg-elev"}`}>
+                <div key={si} className={`rounded-2xl border transition ${done ? "border-ink/25 bg-ink/[0.04]" : "border-line bg-elev"}`}>
                   <div className="flex items-center gap-3 px-3.5 py-2">
                     <span className="label-mono w-11 text-[9px] text-faint">Set {si + 1}</span>
                     <button

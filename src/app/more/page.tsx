@@ -1,11 +1,13 @@
 "use client";
+import { useSyncExternalStore } from "react";
 import Mounted from "@/components/mounted";
 import AccountCard from "@/components/account-card";
-import { Card, PageHead } from "@/components/ui";
+import { Card, PageHead, Segmented } from "@/components/ui";
 import { ListRow } from "@/components/ui";
 import { doExport, doImport } from "@/components/shell";
 import { useApp } from "@/lib/store";
 import { ACHIEVEMENTS } from "@/lib/seed";
+import { getThemeMode, setThemeMode, subscribeTheme, type ThemeMode } from "@/lib/theme";
 import {
   BookOpen,
   Download,
@@ -13,6 +15,7 @@ import {
   Map,
   Moon,
   NotebookPen,
+  SunMoon,
   Trophy,
   Upload,
 } from "lucide-react";
@@ -37,6 +40,8 @@ function MoreInner() {
       <div className="mb-4">
         <AccountCard />
       </div>
+
+      <ThemeCard />
 
       <Card className="!p-0 divide-y divide-line/40 overflow-hidden">
         <ListRow
@@ -95,5 +100,27 @@ function MoreInner() {
         Made with <Heart size={10} className="fill-accent text-accent" /> sashankbanda
       </p>
     </>
+  );
+}
+
+/** Dark / light / follow-system — remembered on this device. */
+function ThemeCard() {
+  const mode = useSyncExternalStore(subscribeTheme, getThemeMode, () => "system" as ThemeMode);
+  return (
+    <Card className="mb-4 !p-4">
+      <div className="label-mono mb-3 flex items-center gap-1.5 text-faint">
+        <SunMoon size={13} />
+        Appearance
+      </div>
+      <Segmented<ThemeMode>
+        options={[
+          { value: "system", label: "System" },
+          { value: "dark", label: "Dark" },
+          { value: "light", label: "Light" },
+        ]}
+        value={mode}
+        onChange={setThemeMode}
+      />
+    </Card>
   );
 }

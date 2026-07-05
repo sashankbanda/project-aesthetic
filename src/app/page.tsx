@@ -82,22 +82,22 @@ function HomeInner() {
         <div className="tile-light p-6">
           <div className="dot-texture" />
           <div className="relative">
-            <div className="label-mono text-black/45">Today</div>
-            <div className="mt-1.5 text-[30px] font-light tracking-[-0.02em] text-[#141412]">
+            <div className="label-mono text-(--ti-faint)">Today</div>
+            <div className="mt-1.5 text-[30px] font-light tracking-[-0.02em] text-(--ti-ink)">
               {todayPlan?.isRest ? "Rest Day" : (todayPlan?.name ?? "Training")}
             </div>
             {todayPlan && !todayPlan.isRest && (
-              <div className="mt-0.5 text-xs font-light text-black/50">
+              <div className="mt-0.5 text-xs font-light text-(--ti-dim)">
                 {todayPlan.focus} · ~{todayPlan.durationMin} min
               </div>
             )}
             <div className="mt-5">
               {todayPlan?.isRest ? (
-                <span className="inline-flex items-center gap-2 rounded-full bg-black/8 px-4 py-2 text-sm font-medium text-black/70">
+                <span className="inline-flex items-center gap-2 rounded-full bg-(--ti-chip) px-4 py-2 text-sm font-medium text-(--ti-chip-ink)">
                   <Moon size={14} /> Walk · Stretch · Sleep
                 </span>
               ) : todaySession?.completedAt ? (
-                <span className="inline-flex items-center gap-2 rounded-full bg-black/8 px-4 py-2 text-sm font-medium text-black/70">
+                <span className="inline-flex items-center gap-2 rounded-full bg-(--ti-chip) px-4 py-2 text-sm font-medium text-(--ti-chip-ink)">
                   <CheckCheck size={15} /> Completed
                 </span>
               ) : (
@@ -301,7 +301,7 @@ function CheckInCard() {
               <GlyphMatrix
                 frames={[MOOD_GLYPHS[mo]]}
                 cell={2.4}
-                color={journal?.mood === mo ? "#ff4b2f" : "#6e6e6a"}
+                color={journal?.mood === mo ? "var(--color-accent)" : "var(--color-faint)"}
               />
             </button>
           ))}

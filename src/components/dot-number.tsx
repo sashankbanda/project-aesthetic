@@ -26,7 +26,7 @@ const GLYPHS: Record<string, string[]> = {
 export default function DotNumber({
   value,
   cell = 7,
-  color = "#ffffff",
+  color = "var(--color-ink)",
   ghost = true,
   className = "",
 }: {
@@ -69,7 +69,10 @@ export default function DotNumber({
       width={W}
       height={H}
       className={className}
-      style={{ filter: `drop-shadow(0 0 ${cell * 1.2}px ${color}55)` }}
+      style={{
+        // color-mix (not hex-alpha) so `color` may be a CSS variable
+        filter: `drop-shadow(0 0 ${cell * 1.2}px color-mix(in srgb, ${color} 33%, transparent))`,
+      }}
       aria-label={text}
       role="img"
     >

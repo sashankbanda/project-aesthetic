@@ -22,7 +22,7 @@ export default function ExerciseMedia({ ex }: { ex: Exercise }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={img.src} alt={img.caption} className="aspect-square w-full object-cover" />
           {img.kind === "right" && (
-            <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-good text-[#04231a]">
+            <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-good text-bg">
               <Check size={15} strokeWidth={3} />
             </span>
           )}

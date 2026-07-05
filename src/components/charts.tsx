@@ -8,10 +8,10 @@
 // ============================================================
 import { useId, useMemo, useRef, useState } from "react";
 
-const SURFACE = "#161615";
-const GRID = "#242422";
-const MUTED = "#6e6e6a";
-const INK = "#f4f4f2";
+const SURFACE = "var(--color-card)";
+const GRID = "color-mix(in srgb, var(--color-line) 80%, transparent)";
+const MUTED = "var(--color-faint)";
+const INK = "var(--color-ink)";
 
 export interface LinePoint {
   label: string;

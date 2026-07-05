@@ -11,8 +11,8 @@ const TILE_CLS: Record<TileTone, string> = {
   accent: "tile-accent",
 };
 const TILE_DOT: Record<TileTone, string> = {
-  dark: "#f4f4f2",
-  light: "#141412",
+  dark: "var(--color-ink)",
+  light: "var(--ti-ink)",
   accent: "#ffffff",
 };
 
@@ -42,7 +42,8 @@ export function Tile({
   children?: ReactNode;
   className?: string;
 }) {
-  const muted = tone === "light" ? "text-black/50" : "text-white/55";
+  const muted =
+    tone === "light" ? "text-(--ti-dim)" : tone === "accent" ? "text-white/60" : "text-dim";
   return (
     <div className={`${TILE_CLS[tone]} p-5 ${className}`}>
       {texture && <div className="dot-texture" />}
@@ -195,7 +196,7 @@ export function Pill({
 }) {
   const styles = {
     default: "border-line bg-card2 text-dim",
-    accent: "border-accent/35 bg-accent/12 text-[#ffb4a6]",
+    accent: "border-accent/35 bg-accent/12 text-(--accent-soft)",
     good: "border-good/25 bg-good/10 text-good",
   } as const;
   const cls = `inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold ${styles[tone]}`;

@@ -79,7 +79,7 @@ function AchievementsInner() {
       />
       <Card className="mb-5 !p-4">
         <div className="flex items-center gap-4">
-          <GlyphMatrix frames={TROPHY_FRAMES} fps={2.5} cell={3} color="#d9a13b" className="shrink-0" />
+          <GlyphMatrix frames={TROPHY_FRAMES} fps={2.5} cell={3} color="var(--color-warn)" className="shrink-0" />
           <Meter ratio={unlockedCount / ACHIEVEMENTS.length} color="var(--color-viz1)" className="flex-1" />
           <span className="text-xs font-bold tabular-nums text-dim">
             {unlockedCount}/{ACHIEVEMENTS.length}

@@ -72,7 +72,7 @@ function NutritionInner() {
 
       {/* today's protein — hero tile */}
       <div className="tile-dark p-6">
-        <div className="dot-texture text-white" />
+        <div className="dot-texture text-ink" />
         <div className="relative">
           <div className="flex items-start justify-between">
             <div className="label-mono text-faint">Today&apos;s Protein</div>
@@ -85,10 +85,14 @@ function NutritionInner() {
             </div>
           </div>
           <div className="mt-4 flex items-end gap-2.5">
-            <DotNumber value={Math.round(total)} cell={9} color={total >= goal ? "#ff4b2f" : "#f4f4f2"} />
+            <DotNumber
+              value={Math.round(total)}
+              cell={9}
+              color={total >= goal ? "var(--color-accent)" : "var(--color-ink)"}
+            />
             <span className="pb-1 text-sm font-light text-dim">/ {goal} g</span>
           </div>
-          <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-ink/10">
             <div
               className={`h-full rounded-full transition-[width] duration-500 ${
                 total >= goal ? "bg-accent" : "bg-ink"
@@ -98,7 +102,7 @@ function NutritionInner() {
           </div>
           {total >= goal && (
             <div className="mt-2.5 flex items-center gap-2 text-xs font-medium text-accent">
-              <GlyphMatrix frames={FLEX_FRAMES} fps={2} cell={2.4} color="#ff4b2f" />
+              <GlyphMatrix frames={FLEX_FRAMES} fps={2} cell={2.4} color="var(--color-accent)" />
               Goal hit
             </div>
           )}

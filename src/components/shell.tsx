@@ -147,7 +147,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
       {/* floating pill tab bar — mobile only */}
       <nav className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[max(env(safe-area-inset-bottom),14px)] md:hidden">
-        <div className="glass mx-auto flex max-w-sm items-stretch justify-around rounded-full border border-line/70 px-2 py-1 shadow-2xl shadow-black/70">
+        <div className="glass mx-auto flex max-w-sm items-stretch justify-around rounded-full border border-line/70 px-2 py-1 shadow-[0_25px_50px_-12px_var(--shadow-bar)]">
           {TABS.map(({ href, icon: Icon, label }) => {
             const isActive = active === href;
             return (

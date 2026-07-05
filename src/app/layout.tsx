@@ -3,6 +3,7 @@ import "./globals.css";
 import Shell from "@/components/shell";
 import AuthProvider from "@/components/auth-provider";
 import { authEnabled } from "@/auth";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "Aesthetic",
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#08080c",
+  themeColor: "#0a0a09",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -32,8 +33,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full">
+        {/* applies the saved theme before first paint — no flash */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <AuthProvider enabled={authEnabled}>
           <Shell>{children}</Shell>
         </AuthProvider>

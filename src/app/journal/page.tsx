@@ -91,7 +91,11 @@ function JournalInner() {
                 mood === m ? "border-accent/40 bg-accent/10" : "border-line"
               }`}
             >
-              <GlyphMatrix frames={[MOOD_GLYPHS[m]]} cell={3} color={mood === m ? "#ff4b2f" : "#6e6e6a"} />
+              <GlyphMatrix
+                frames={[MOOD_GLYPHS[m]]}
+                cell={3}
+                color={mood === m ? "var(--color-accent)" : "var(--color-faint)"}
+              />
             </button>
           ))}
         </div>
@@ -140,7 +144,7 @@ function JournalInner() {
             <Card key={j.date} className="!p-4">
               <div className="flex items-center gap-3">
                 {MOOD_GLYPHS[j.mood] ? (
-                  <GlyphMatrix frames={[MOOD_GLYPHS[j.mood]]} cell={2.8} color="#a6a6a2" />
+                  <GlyphMatrix frames={[MOOD_GLYPHS[j.mood]]} cell={2.8} color="var(--color-dim)" />
                 ) : (
                   <span className="w-6 text-center text-faint">·</span>
                 )}

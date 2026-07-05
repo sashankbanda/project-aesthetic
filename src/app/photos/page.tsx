@@ -167,7 +167,7 @@ function PhotosInner() {
               max={98}
               value={slider}
               onChange={(e) => setSlider(parseInt(e.target.value))}
-              className="mt-4 w-full accent-[#ff4b2f]"
+              className="mt-4 w-full accent-accent"
             />
           </Card>
           <PhysiqueDelta />

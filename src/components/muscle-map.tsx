@@ -72,11 +72,11 @@ const VIEW_FOR: Record<MuscleGroup, View> = {
   "Lower Back": "back",
 };
 
-const BASE = "#1a1a19";
-const BASE_STROKE = "#2c2c2a";
-const MUSCLE_IDLE = "#242422";
-const PRIMARY = "#ff4b2f";
-const SECONDARY = "#9d9d99";
+const BASE = "var(--color-elev)";
+const BASE_STROKE = "var(--color-line)";
+const MUSCLE_IDLE = "var(--color-card2)";
+const PRIMARY = "var(--color-accent)";
+const SECONDARY = "var(--color-viz2)";
 
 /** Body silhouette shared by both views. */
 function Silhouette() {
