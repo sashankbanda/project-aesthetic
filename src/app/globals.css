@@ -1,26 +1,231 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================
+   Project Aesthetic — monochrome design system
+   Nothing-OS inspired: near-black canvas, charcoal surfaces,
+   occasional inverted (off-white) tiles, ONE signal accent.
+   Thin type, mono labels, dot-matrix numerals, generous air.
+   ============================================================ */
+@theme {
+  --color-bg: #0a0a09;
+  --color-elev: #101010;
+  --color-card: #161615;
+  --color-card2: #1e1e1d;
+  --color-line: #2a2a28;
+  --color-ink: #f4f4f2;
+  --color-dim: #a6a6a2;
+  --color-faint: #6e6e6a;
+  /* the one accent — used sparingly: primary actions, key signals */
+  --color-accent: #ff4b2f;
+  /* quiet metal — secondary emphasis that must NOT shout */
+  --color-accent2: #b9b9b5;
+  --color-good: #3ecf8e;
+  --color-warn: #d9a13b;
+  --color-bad: #ff4b2f;
+  /* chart series — monochrome ramp + accent for emphasis */
+  --color-viz1: #e8e8e4;
+  --color-viz2: #9d9d99;
+  --color-viz3: #5d5d59;
+  --color-viz4: #ff4b2f;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+    system-ui, Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo,
+    monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+  user-select: none; /* app feel — inputs/textareas re-enable below */
+}
+
+input,
+textarea,
+[contenteditable] {
+  user-select: text;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #242422;
+  border-radius: 20px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------- surfaces ---------- */
+@utility card {
+  background: var(--color-card);
+  border: 1px solid color-mix(in srgb, var(--color-line) 60%, transparent);
+  border-radius: 24px;
+}
+
+/* inverted tile — off-white, the monochrome "pop" */
+@utility tile-light {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, #f5f5f0 0%, #e9e9e3 100%);
+  color: #141412;
+  box-shadow: 0 22px 60px -30px rgba(0, 0, 0, 0.9);
+}
+
+/* accent tile — the single loud surface, use once per screen max */
+@utility tile-accent {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(165deg, #ff5b3d 0%, #ef3517 78%, #d92c10 100%);
+  color: #fff;
+  box-shadow: 0 24px 70px -30px rgba(255, 75, 47, 0.55);
+}
+
+/* charcoal tile — hero-weight dark surface */
+@utility tile-dark {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
+  background: linear-gradient(180deg, #191918 0%, #101010 100%);
+  box-shadow: 0 22px 60px -34px rgba(0, 0, 0, 0.9);
+}
+
+@utility glass {
+  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+}
+
+@utility text-grad {
+  background: linear-gradient(135deg, #f4f4f2 0%, #8a8a86 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility bg-grad {
+  background: linear-gradient(165deg, #ff5b3d 0%, #ef3517 100%);
+}
+
+/* mono eyebrow label — the system's small-caps voice */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+/* faint dot-grid texture, masked into a soft blob (decorative) */
+@utility dot-texture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(currentColor 1px, transparent 1.6px);
+  background-size: 11px 11px;
+  mask-image: radial-gradient(60% 55% at 72% 25%, black, transparent 75%);
+  -webkit-mask-image: radial-gradient(60% 55% at 72% 25%, black, transparent 75%);
+  opacity: 0.14;
+}
+
+/* ---------- motion ---------- */
+@utility pressable {
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+    opacity 0.15s ease,
+    box-shadow 0.25s ease;
+}
+.pressable:active {
+  transform: scale(0.97);
+  opacity: 0.88;
+}
+
+/* desktop hover — quiet elevation */
+@media (hover: hover) {
+  .pressable:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@utility view-in {
+  animation: viewIn 0.34s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+@keyframes viewIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility rise-in {
+  animation: riseIn 0.3s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+}
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* safe-area helpers */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 4px;
+  background: var(--color-card2);
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
 }
