@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Mounted from "@/components/mounted";
+import { CAMERA_FRAMES, GlyphMatrix } from "@/components/glyph";
 import ProgressNav from "@/components/progress-nav";
 import { Card, PageHead, SectionTitle } from "@/components/ui";
 import { monthStr, update, useApp } from "@/lib/store";
@@ -167,7 +168,8 @@ function PhotosInner() {
         </>
       ) : (
         months.length <= 1 && (
-          <Card className="mt-6 py-8 text-center text-sm text-faint">
+          <Card className="mt-6 py-10 text-center text-sm text-faint">
+            <GlyphMatrix frames={CAMERA_FRAMES} fps={1.2} cell={4} className="mx-auto mb-4 opacity-70" />
             Upload photos this month and next month — the comparison slider appears automatically.
           </Card>
         )

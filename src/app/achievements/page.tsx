@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import Mounted from "@/components/mounted";
+import { GlyphMatrix, TROPHY_FRAMES } from "@/components/glyph";
 import { Card, Meter, PageHead } from "@/components/ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { ACHIEVEMENTS } from "@/lib/seed";
@@ -77,8 +78,8 @@ function AchievementsInner() {
         sub={`${unlockedCount} of ${ACHIEVEMENTS.length} unlocked — every badge is earned, never given.`}
       />
       <Card className="mb-5 !p-4">
-        <div className="flex items-center gap-3">
-          <Trophy size={18} className="shrink-0 text-warn" />
+        <div className="flex items-center gap-4">
+          <GlyphMatrix frames={TROPHY_FRAMES} fps={2.5} cell={3} color="#d9a13b" className="shrink-0" />
           <Meter ratio={unlockedCount / ACHIEVEMENTS.length} color="var(--color-viz1)" className="flex-1" />
           <span className="text-xs font-bold tabular-nums text-dim">
             {unlockedCount}/{ACHIEVEMENTS.length}

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Mounted from "@/components/mounted";
 import DotNumber from "@/components/dot-number";
-import { CHECK_FRAMES, GlyphMatrix, MOON_FRAMES } from "@/components/glyph";
+import { CHECK_FRAMES, DUMBBELL_FRAMES, GlyphMatrix, MOON_FRAMES, TROPHY_FRAMES } from "@/components/glyph";
 import MuscleMap from "@/components/muscle-map";
 import ExerciseMedia from "@/components/exercise-media";
 import { Btn, Card, Meter, PageHead, Pill, Stepper } from "@/components/ui";
@@ -291,6 +291,9 @@ function WorkoutInner() {
                   <Clock size={11} /> plan ~{day.durationMin} min
                 </div>
               </div>
+              {session?.startedAt && !session?.completedAt && (
+                <GlyphMatrix frames={DUMBBELL_FRAMES} fps={4} cell={2.6} className="shrink-0 opacity-80" />
+              )}
               <div className="text-sm font-bold tabular-nums">
                 {doneSets}<span className="text-faint">/{totalSets}</span>
               </div>
@@ -593,11 +596,12 @@ function SessionSummary({
         )}
 
         {achievements.length > 0 && (
-          <div className="mt-4 rounded-2xl border border-warn/25 bg-warn/10 px-4 py-3">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-warn">
-              <Trophy size={13} /> Unlocked
+          <div className="mt-4 flex items-center gap-3.5 rounded-2xl border border-warn/25 bg-warn/10 px-4 py-3">
+            <GlyphMatrix frames={TROPHY_FRAMES} fps={3} cell={3.2} color="#d9a13b" className="shrink-0" />
+            <div>
+              <div className="label-mono text-[9px] text-warn">Unlocked</div>
+              <div className="mt-0.5 text-[13px] text-ink">{achievements.join(" · ")}</div>
             </div>
-            <div className="mt-1 text-[13px] text-ink">{achievements.join(" · ")}</div>
           </div>
         )}
 

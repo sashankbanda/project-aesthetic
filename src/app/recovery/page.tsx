@@ -1,8 +1,9 @@
 "use client";
 import Mounted from "@/components/mounted";
+import { DROP_FRAMES, GlyphMatrix, SLEEP_FRAMES, STEPS_FRAMES } from "@/components/glyph";
 import { Card, Meter, PageHead, SectionTitle } from "@/components/ui";
 import { todayStr, update, useApp } from "@/lib/store";
-import { Calendar, Check, Droplets, Footprints, Moon, StretchHorizontal } from "lucide-react";
+import { Calendar, Check, StretchHorizontal } from "lucide-react";
 
 export default function RecoveryPage() {
   return (
@@ -44,8 +45,9 @@ function RecoveryInner() {
         {/* sleep */}
         <Card>
           <div className="flex items-baseline justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-faint">
-              <Moon size={13} /> Sleep
+            <div className="label-mono flex items-center gap-2 text-faint">
+              <GlyphMatrix frames={SLEEP_FRAMES} fps={1.5} cell={2.2} />
+              Sleep
             </div>
             <div className="text-sm font-bold tabular-nums">
               {sleep || "—"} / {p.sleepGoalH} h
@@ -70,8 +72,9 @@ function RecoveryInner() {
         {/* water */}
         <Card>
           <div className="flex items-baseline justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-faint">
-              <Droplets size={13} /> Water
+            <div className="label-mono flex items-center gap-2 text-faint">
+              <GlyphMatrix frames={DROP_FRAMES} fps={2.5} cell={2.4} />
+              Water
             </div>
             <div className="text-sm font-bold tabular-nums">
               {water} / {p.waterGoalMl} ml
@@ -103,8 +106,9 @@ function RecoveryInner() {
         {/* steps */}
         <Card>
           <div className="flex items-baseline justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-faint">
-              <Footprints size={13} /> Steps
+            <div className="label-mono flex items-center gap-2 text-faint">
+              <GlyphMatrix frames={STEPS_FRAMES} fps={2} cell={2.4} />
+              Steps
             </div>
             <div className="text-sm font-bold tabular-nums">
               {steps.toLocaleString("en-IN")} / {p.stepsGoal.toLocaleString("en-IN")}
@@ -123,7 +127,7 @@ function RecoveryInner() {
 
         {/* stretching */}
         <Card>
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-faint">
+          <div className="label-mono flex items-center gap-2 text-faint">
             <StretchHorizontal size={13} /> Stretching
           </div>
           <p className="mt-2 text-xs leading-relaxed text-dim">

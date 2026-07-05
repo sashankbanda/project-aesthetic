@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Mounted from "@/components/mounted";
 import DotNumber from "@/components/dot-number";
+import { FLEX_FRAMES, GlyphMatrix } from "@/components/glyph";
 import { Card, PageHead, Pill, SectionTitle } from "@/components/ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { budgetPlan, FOOD_MAP, FOODS } from "@/lib/foods";
@@ -96,8 +97,9 @@ function NutritionInner() {
             />
           </div>
           {total >= goal && (
-            <div className="mt-2.5 flex items-center gap-1.5 text-xs font-medium text-accent">
-              <Check size={13} strokeWidth={2.6} /> Goal hit
+            <div className="mt-2.5 flex items-center gap-2 text-xs font-medium text-accent">
+              <GlyphMatrix frames={FLEX_FRAMES} fps={2} cell={2.4} color="#ff4b2f" />
+              Goal hit
             </div>
           )}
         </div>
