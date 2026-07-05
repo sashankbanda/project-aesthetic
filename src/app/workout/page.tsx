@@ -291,9 +291,6 @@ function WorkoutInner() {
                   <Clock size={11} /> plan ~{day.durationMin} min
                 </div>
               </div>
-              {session?.startedAt && !session?.completedAt && (
-                <GlyphMatrix frames={DUMBBELL_FRAMES} fps={4} cell={2.6} className="shrink-0 opacity-80" />
-              )}
               <div className="text-sm font-bold tabular-nums">
                 {doneSets}<span className="text-faint">/{totalSets}</span>
               </div>
@@ -465,11 +462,16 @@ function ElapsedClock({ startedAt, stoppedAt }: { startedAt: string; stoppedAt?:
   const hh = Math.floor(mm / 60);
   return (
     <div
-      className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-[15px] font-bold tabular-nums ${
+      className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[15px] font-bold tabular-nums ${
         stoppedAt ? "border-good/30 bg-good/10 text-good" : "border-accent/30 bg-accent/10 text-ink"
       }`}
     >
-      <Timer size={15} className={stoppedAt ? "text-good" : "text-accent"} />
+      {stoppedAt ? (
+        <Timer size={15} className="text-good" />
+      ) : (
+        /* live session — the dumbbell does reps inside the chip */
+        <GlyphMatrix frames={DUMBBELL_FRAMES} fps={4} cell={1.9} color="#ff4b2f" />
+      )}
       {hh > 0 ? `${hh}:${String(mm % 60).padStart(2, "0")}:` : `${mm}:`}
       {String(s % 60).padStart(2, "0")}
     </div>

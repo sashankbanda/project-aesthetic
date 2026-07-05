@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Mounted from "@/components/mounted";
+import { GlyphMatrix, MOOD_GLYPHS } from "@/components/glyph";
 import { Btn, Card, Empty, PageHead, SectionTitle, inputCls } from "@/components/ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { Calendar, NotebookPen, Star } from "lucide-react";
@@ -84,12 +85,13 @@ function JournalInner() {
           {MOODS.map((m) => (
             <button
               key={m}
-              onClick={() => setMood(m)}
-              className={`pressable rounded-2xl border px-2.5 py-1.5 text-2xl ${
-                mood === m ? "border-accent bg-card2" : "border-transparent opacity-45"
+              onClick={() => setMood(mood === m ? "" : m)}
+              aria-label={`mood ${m}`}
+              className={`pressable rounded-2xl border px-2.5 py-2 ${
+                mood === m ? "border-accent/40 bg-accent/10" : "border-line"
               }`}
             >
-              {m}
+              <GlyphMatrix frames={[MOOD_GLYPHS[m]]} cell={3} color={mood === m ? "#ff4b2f" : "#6e6e6a"} />
             </button>
           ))}
         </div>
@@ -137,7 +139,11 @@ function JournalInner() {
           {history.map((j) => (
             <Card key={j.date} className="!p-4">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{j.mood || "·"}</span>
+                {MOOD_GLYPHS[j.mood] ? (
+                  <GlyphMatrix frames={[MOOD_GLYPHS[j.mood]]} cell={2.8} color="#a6a6a2" />
+                ) : (
+                  <span className="w-6 text-center text-faint">·</span>
+                )}
                 <div className="flex-1">
                   <div className="text-sm font-semibold">
                     {new Date(j.date + "T12:00:00").toLocaleDateString("en-IN", {

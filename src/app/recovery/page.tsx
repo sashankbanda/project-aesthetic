@@ -58,7 +58,7 @@ function RecoveryInner() {
             {[5, 6, 6.5, 7, 7.5, 8, 8.5, 9].map((h) => (
               <button
                 key={h}
-                onClick={() => patch({ sleepH: h })}
+                onClick={() => patch({ sleepH: sleep === h ? undefined : h })}
                 className={`pressable rounded-xl border px-2.5 py-2 text-xs font-semibold tabular-nums ${
                   sleep === h ? "border-accent/40 bg-accent/15 text-ink" : "border-line text-dim"
                 }`}

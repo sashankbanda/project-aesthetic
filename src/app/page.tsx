@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Mounted from "@/components/mounted";
 import { Card, Meter, Pill, SectionTitle, Tile } from "@/components/ui";
-import { FLAME_FRAMES, GlyphMatrix } from "@/components/glyph";
+import { FLAME_FRAMES, GlyphMatrix, MOOD_GLYPHS } from "@/components/glyph";
 import { Sparkline } from "@/components/charts";
 import { useApp, todayStr, update } from "@/lib/store";
 import { weeklyCompletion, workoutStreak } from "@/lib/overload";
@@ -209,17 +209,29 @@ function CheckInCard() {
       j.mood = j.mood === mood ? "" : mood;
     });
 
+  const chip = (active: boolean) =>
+    `pressable shrink-0 rounded-xl border px-2.5 py-1.5 text-xs font-bold tabular-nums ${
+      active ? "border-accent/40 bg-accent/15 text-ink" : "border-line bg-elev text-faint"
+    }`;
+
   return (
     <Card className="!p-4">
-      {/* water */}
+      {/* water — +/− so a mistaken tap is reversible */}
       <div className="flex items-center gap-3">
         <Droplets size={18} className="shrink-0 text-viz2" />
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <div className="text-[13px] font-semibold">
             Water <span className="text-faint">· {water} ml</span>
           </div>
           <Meter ratio={water / state.profile.waterGoalMl} className="mt-1.5" color="var(--color-viz2)" />
         </div>
+        <button
+          onClick={() => patchRecovery({ waterMl: Math.max(0, water - 250) })}
+          aria-label="remove 250 ml"
+          className="pressable rounded-xl border border-line bg-elev px-2.5 py-2 text-xs font-bold text-faint"
+        >
+          −
+        </button>
         <button
           onClick={() => patchRecovery({ waterMl: water + 250 })}
           className="pressable rounded-xl border border-line bg-elev px-3 py-2 text-xs font-bold text-dim"
@@ -234,18 +246,16 @@ function CheckInCard() {
         </button>
       </div>
 
-      {/* sleep */}
+      {/* sleep — scrollable range, tap again to clear */}
       <div className="mt-4 flex items-center gap-3">
         <Moon size={18} className="shrink-0 text-viz1" />
         <div className="text-[13px] font-semibold">Sleep</div>
-        <div className="flex flex-1 justify-end gap-1.5 overflow-x-auto">
-          {[6, 6.5, 7, 7.5, 8, 8.5].map((h) => (
+        <div className="-mr-4 flex flex-1 gap-1.5 overflow-x-auto pr-4 [scrollbar-width:none]">
+          {[5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map((h) => (
             <button
               key={h}
-              onClick={() => patchRecovery({ sleepH: h })}
-              className={`pressable shrink-0 rounded-xl border px-2.5 py-1.5 text-xs font-bold tabular-nums ${
-                rec?.sleepH === h ? "border-accent/40 bg-accent/15 text-ink" : "border-line bg-elev text-faint"
-              }`}
+              onClick={() => patchRecovery({ sleepH: rec?.sleepH === h ? undefined : h })}
+              className={chip(rec?.sleepH === h)}
             >
               {h}
             </button>
@@ -256,20 +266,13 @@ function CheckInCard() {
       {/* steps — no pedometer API on the web, so entry is 1 tap */}
       <div className="mt-4 flex items-center gap-3">
         <Footprints size={18} className="shrink-0 text-viz3" />
-        <div className="text-[13px] font-semibold">
-          Steps
-          {rec?.steps ? (
-            <span className="ml-1 text-faint">· {rec.steps.toLocaleString("en-IN")}</span>
-          ) : null}
-        </div>
-        <div className="flex flex-1 justify-end gap-1.5 overflow-x-auto">
-          {[4000, 6000, 8000, 10000].map((n) => (
+        <div className="text-[13px] font-semibold">Steps</div>
+        <div className="-mr-4 flex flex-1 gap-1.5 overflow-x-auto pr-4 [scrollbar-width:none]">
+          {[3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000].map((n) => (
             <button
               key={n}
-              onClick={() => patchRecovery({ steps: n })}
-              className={`pressable shrink-0 rounded-xl border px-2.5 py-1.5 text-xs font-bold tabular-nums ${
-                rec?.steps === n ? "border-accent/40 bg-accent/15 text-ink" : "border-line bg-elev text-faint"
-              }`}
+              onClick={() => patchRecovery({ steps: rec?.steps === n ? undefined : n })}
+              className={chip(rec?.steps === n)}
             >
               {n / 1000}k
             </button>
@@ -277,26 +280,31 @@ function CheckInCard() {
         </div>
       </div>
 
-      {/* mood */}
+      {/* mood — glyph faces, tap again to clear */}
       <div className="mt-4 flex items-center gap-3">
         <Smile size={18} className="shrink-0 text-warn" />
         <div className="text-[13px] font-semibold">Mood</div>
-        <div className="flex flex-1 justify-end gap-1">
+        <div className="flex flex-1 justify-end gap-1.5">
           {MOODS.map((mo) => (
             <button
               key={mo}
               onClick={() => setMood(mo)}
-              className={`pressable rounded-xl px-1.5 py-1 text-xl ${
-                journal?.mood === mo ? "bg-card2" : "opacity-45"
+              aria-label={`mood ${mo}`}
+              className={`pressable rounded-xl border px-2 py-1.5 ${
+                journal?.mood === mo ? "border-accent/40 bg-accent/10" : "border-transparent"
               }`}
             >
-              {mo}
+              <GlyphMatrix
+                frames={[MOOD_GLYPHS[mo]]}
+                cell={2.4}
+                color={journal?.mood === mo ? "#ff4b2f" : "#6e6e6a"}
+              />
             </button>
           ))}
         </div>
       </div>
 
-      {(rec?.sleepH || water > 0 || journal?.mood) && (
+      {(rec?.sleepH || water > 0 || rec?.steps || journal?.mood) && (
         <div className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold text-good">
           <Check size={12} strokeWidth={3} /> Logged for today
         </div>
