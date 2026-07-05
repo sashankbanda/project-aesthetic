@@ -1,0 +1,194 @@
+// ============================================================
+// Project Aesthetic — PostgreSQL schema
+// Every user-owned row carries userId; the sync API only ever
+// reads/writes rows for the authenticated session user.
+// Progress photo IMAGES are never stored — metadata only.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Auth.js models ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts Account[]
+
+  profile         Profile?
+  measurements    Measurement[]
+  workoutSessions WorkoutSession[]
+  foodEntries     FoodEntry[]
+  recoveryEntries RecoveryEntry[]
+  journalEntries  JournalEntry[]
+  roadmapGoals    RoadmapGoal[]
+  photoMeta       PhotoMeta[]
+  achievements    UnlockedAchievement[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// ---------- App data (mirrors src/lib/types.ts) ----------
+
+model Profile {
+  userId           String   @id
+  name             String
+  heightCm         Float
+  birthYear        Int
+  phase            String
+  targetWeightKg   Float
+  targetBodyFatPct Float
+  proteinGoalG     Float
+  waterGoalMl      Int
+  stepsGoal        Int
+  sleepGoalH       Float
+  nextMilestone    String
+  /// the weekly workout plan (WorkoutDay[]) — user-customizable later
+  plan             Json
+  /// last-write-wins timestamp for whole-state sync
+  stateModifiedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Measurement {
+  id          String @id @default(cuid())
+  userId      String
+  date        String // yyyy-mm-dd
+  weightKg    Float?
+  bodyFatPct  Float?
+  waistCm     Float?
+  chestCm     Float?
+  armsCm      Float?
+  shouldersCm Float?
+  thighCm     Float?
+  calfCm      Float?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model WorkoutSession {
+  id          String  @id @default(cuid())
+  userId      String
+  /// client id: `${date}_${dayId}`
+  localId     String
+  date        String
+  dayId       String
+  startedAt   String?
+  completedAt String?
+  /// ExerciseLog[] — set-level detail with timestamps
+  logs        Json
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, localId])
+  @@index([userId, date])
+}
+
+model FoodEntry {
+  id       String @id @default(cuid())
+  userId   String
+  date     String
+  foodId   String
+  servings Float
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, foodId])
+}
+
+model RecoveryEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String
+  sleepH    Float?
+  waterMl   Int?
+  steps     Int?
+  stretched Boolean?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model JournalEntry {
+  id     String @id @default(cuid())
+  userId String
+  date   String
+  energy Int
+  sleepH Float
+  mood   String
+  notes  String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model RoadmapGoal {
+  id      String  @id @default(cuid())
+  userId  String
+  localId String
+  month   String // yyyy-mm
+  label   String
+  done    Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, localId])
+}
+
+/// Progress photo METADATA only — the images never leave the device.
+model PhotoMeta {
+  id         String  @id @default(cuid())
+  userId     String
+  month      String // yyyy-mm
+  angle      String // front | side | back
+  weightKg   Float?
+  capturedAt String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month, angle])
+}
+
+model UnlockedAchievement {
+  id            String @id @default(cuid())
+  userId        String
+  achievementId String
+  date          String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+}

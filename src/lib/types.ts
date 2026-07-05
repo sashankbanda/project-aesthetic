@@ -144,9 +144,13 @@ export interface JournalEntry {
 export interface PhotoSet {
   /** yyyy-mm */
   month: string;
-  front?: string; // data URL
+  /** framed thumbnails (data URLs) — full images live only on the user's device */
+  front?: string;
   side?: string;
   back?: string;
+  /** metadata baked into the generated frames */
+  weightKg?: number;
+  capturedAt?: string;
 }
 
 export interface RoadmapGoal {
@@ -166,6 +170,8 @@ export interface AchievementDef {
 
 export interface AppState {
   version: number;
+  /** stamped on every change — drives last-write-wins sync */
+  modifiedAt?: string;
   profile: Profile;
   plan: WorkoutDay[];
   sessions: WorkoutSession[];

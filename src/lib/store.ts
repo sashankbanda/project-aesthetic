@@ -7,6 +7,7 @@
 import { useSyncExternalStore } from "react";
 import type { AppState } from "./types";
 import { createInitialState } from "./seed";
+import { BackupSchema } from "./schemas";
 
 const KEY = "project-aesthetic-v1";
 
@@ -43,6 +44,14 @@ export function getState(): AppState {
 export function update(recipe: (draft: AppState) => void) {
   const next = structuredClone(load());
   recipe(next);
+  next.modifiedAt = new Date().toISOString();
+  cache = next;
+  persist();
+  listeners.forEach((l) => l());
+}
+
+/** Replace the whole state (sync pull / restore) without re-stamping modifiedAt. */
+export function replaceState(next: AppState) {
   cache = next;
   persist();
   listeners.forEach((l) => l());
@@ -56,15 +65,21 @@ export function resetAll() {
 
 export function importState(json: string): boolean {
   try {
-    const parsed = JSON.parse(json) as AppState;
-    if (typeof parsed !== "object" || !parsed.profile || !parsed.plan) return false;
-    cache = parsed;
+    const parsed = BackupSchema.safeParse(JSON.parse(json));
+    if (!parsed.success) return false;
+    cache = parsed.data as unknown as AppState;
     persist();
     listeners.forEach((l) => l());
     return true;
   } catch {
     return false;
   }
+}
+
+/** Subscribe outside React (sync agent). Returns unsubscribe. */
+export function onStateChange(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
 export function exportState(): string {

@@ -1,26 +1,17 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import Mounted from "@/components/mounted";
 import { CAMERA_FRAMES, GlyphMatrix } from "@/components/glyph";
 import ProgressNav from "@/components/progress-nav";
 import { Card, PageHead, SectionTitle } from "@/components/ui";
+import { generateFramedPhoto, saveToDevice } from "@/lib/photo-frame";
+import { latestMeasurement } from "@/lib/stats";
 import { monthStr, update, useApp } from "@/lib/store";
 import type { Measurement, PhotoSet } from "@/lib/types";
-import { ArrowDown, ArrowUp, Camera, GitCompareArrows, History, Minus, Ruler, X as XIcon } from "lucide-react";
+import { ArrowDown, ArrowUp, Camera, GitCompareArrows, History, Lock, Minus, Ruler, X as XIcon } from "lucide-react";
 
 const ANGLES = ["front", "side", "back"] as const;
 type Angle = (typeof ANGLES)[number];
-
-/** Resize + compress to keep localStorage happy (~5 MB budget). */
-async function fileToDataUrl(file: File, maxW = 640, quality = 0.72): Promise<string> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxW / bitmap.width);
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", quality);
-}
 
 export default function PhotosPage() {
   return (
@@ -47,17 +38,22 @@ function PhotosInner() {
       const file = input.files?.[0];
       if (!file) return;
       try {
-        const dataUrl = await fileToDataUrl(file);
+        // frame it with live data: template + photo + date/time/day/weight
+        const weightKg = latestMeasurement(state)?.weightKg;
+        const framed = await generateFramedPhoto(file, angle, { weightKg });
+        saveToDevice(framed.blob, framed.fileName);
         update((draft) => {
           let set = draft.photos.find((p) => p.month === thisMonth);
           if (!set) {
             set = { month: thisMonth };
             draft.photos.push(set);
           }
-          set[angle] = dataUrl;
+          set[angle] = framed.thumbDataUrl;
+          set.weightKg = weightKg;
+          set.capturedAt = framed.capturedAt;
         });
       } catch {
-        alert("Couldn't read that image — try a different one.");
+        alert("Couldn't process that image — try a different one.");
       }
     };
     input.click();
@@ -78,6 +74,16 @@ function PhotosInner() {
       />
       <ProgressNav />
 
+      {/* privacy contract */}
+      <Card className="mb-5 flex items-start gap-3 !p-4">
+        <Lock size={15} className="mt-0.5 shrink-0 text-dim" />
+        <p className="text-[12px] font-light leading-relaxed text-dim">
+          Photos never leave this device. Each upload is framed with today&apos;s date, time and
+          weight, then <span className="text-ink">saved to your downloads</span> — back that folder
+          up if you want long-term protection. Only a small preview stays in the app.
+        </p>
+      </Card>
+
       <SectionTitle>
         <Camera size={17} className="text-accent2" /> This month — {thisMonth}
       </SectionTitle>
@@ -88,7 +94,7 @@ function PhotosInner() {
             <div key={angle} className="relative">
               <button
                 onClick={() => upload(angle)}
-                className="card grid aspect-3/4 w-full place-items-center overflow-hidden border-dashed"
+                className="card grid aspect-2/3 w-full place-items-center overflow-hidden border-dashed"
               >
                 {src ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -135,7 +141,7 @@ function PhotosInner() {
             <GitCompareArrows size={17} className="text-accent2" /> {previous.month} vs {current.month}
           </SectionTitle>
           <Card>
-            <div className="relative mx-auto aspect-3/4 max-w-sm select-none overflow-hidden rounded-xl">
+            <div className="relative mx-auto aspect-2/3 max-w-sm select-none overflow-hidden rounded-xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={previous[compareAngle]} alt="before" className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0 overflow-hidden" style={{ width: `${slider}%` }}>
@@ -204,10 +210,10 @@ function MonthRow({ set }: { set: PhotoSet }) {
               key={angle}
               src={set[angle]}
               alt={`${set.month} ${angle}`}
-              className="aspect-3/4 w-full rounded-lg object-cover"
+              className="aspect-2/3 w-full rounded-lg object-cover"
             />
           ) : (
-            <div key={angle} className="grid aspect-3/4 place-items-center rounded-lg bg-elev text-xs text-faint">
+            <div key={angle} className="grid aspect-2/3 place-items-center rounded-lg bg-elev text-xs text-faint">
               no {angle}
             </div>
           ),
@@ -217,7 +223,7 @@ function MonthRow({ set }: { set: PhotoSet }) {
   );
 }
 
-/** measurement deltas between the two most recent entries ≥3 weeks apart */
+/** measurement deltas between the two most recent entries â‰¥3 weeks apart */
 function PhysiqueDelta() {
   const state = useApp();
   const sorted = [...state.measurements].sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -249,7 +255,7 @@ function PhysiqueDelta() {
   return (
     <Card className="mt-4">
       <div className="mb-3 flex items-center gap-1.5 text-sm font-semibold">
-        <Ruler size={15} className="text-accent2" /> Physique change ({prior.date} → {latest.date})
+        <Ruler size={15} className="text-accent2" /> Physique change ({prior.date} â†’ {latest.date})
       </div>
       <div className="flex flex-wrap gap-2.5">
         {deltas.map((d) => {

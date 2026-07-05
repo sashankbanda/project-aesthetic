@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Shell from "@/components/shell";
+import AuthProvider from "@/components/auth-provider";
+import { authEnabled } from "@/auth";
 
 export const metadata: Metadata = {
   title: "Aesthetic",
@@ -32,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full">
-        <Shell>{children}</Shell>
+        <AuthProvider enabled={authEnabled}>
+          <Shell>{children}</Shell>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 "use client";
 import Mounted from "@/components/mounted";
+import AccountCard from "@/components/account-card";
 import { Card, PageHead } from "@/components/ui";
 import { ListRow } from "@/components/ui";
 import { doExport, doImport } from "@/components/shell";
@@ -31,6 +32,10 @@ function MoreInner() {
   return (
     <>
       <PageHead title="More" sub="Everything else — journals, badges, plans and backups." />
+
+      <div className="mb-4">
+        <AccountCard />
+      </div>
 
       <Card className="!p-0 divide-y divide-line/40 overflow-hidden">
         <ListRow
