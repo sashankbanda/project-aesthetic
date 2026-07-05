@@ -32,7 +32,7 @@ export const EXERCISES: Exercise[] = [
     home: {
       name: "Decline Push-Up",
       reps: "3×8–15",
-      how: "Feet on a bed or chair, hands slightly wider than shoulders — the higher your feet, the more upper chest. Slow 3-sec negatives; add a backpack of books when 15 clean reps get easy.",
+      how: "Feet elevated, hands slightly wider than shoulders — the higher the feet, the more upper chest. When 15 clean reps get easy: 3-sec negatives, then add a 2-sec pause at the bottom.",
     },
   },
   {
@@ -48,9 +48,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×8 clean reps → add 2.5 kg",
     incrementKg: 2.5,
     home: {
-      name: "Deep Decline Push-Up",
+      name: "Paused Decline Push-Up",
       reps: "3×6–12",
-      how: "Feet elevated to table height, hands on two thick books for a deeper stretch at the bottom. Press up and slightly back — same bar path, no bar.",
+      how: "Feet elevated, full 2-sec stop at the bottom with the chest just off the mat, then press up and slightly back — same bar path. The dead pause replaces the extra plates.",
     },
   },
   {
@@ -66,9 +66,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×8 → add 2.5 kg. Milestone: 60 kg × 8",
     incrementKg: 2.5,
     home: {
-      name: "Weighted Push-Up",
+      name: "Push-Up → Archer Push-Up",
       reps: "3×10–20",
-      how: "Standard push-up: body in one line, elbows ~60°, chest to the floor. Past 20 easy reps, wear a tightly packed backpack high on your back.",
+      how: "Standard push-up: body in one line, elbows ~60°, chest to the mat. Past 20 easy reps, go archer — hands wide, bend one elbow while the other arm stays straight. One side does the pressing.",
     },
   },
   {
@@ -84,9 +84,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×12 with 2-sec squeeze → next pin",
     incrementKg: 2.5,
     home: {
-      name: "Towel Floor Fly",
+      name: "Squeeze Decline Push-Up",
       reps: "3×8–12",
-      how: "On smooth floor, a towel under each hand in push-up position. Let the arms slide out wide, then squeeze the chest to drag them back in. Slight elbow bend, never locked.",
+      how: "Feet elevated, hands set wide. As you press, actively drag the palms toward each other — the hands don't move, but the pecs contract exactly like a fly. Hold the squeeze 2 sec at the top.",
     },
   },
   {
@@ -103,9 +103,9 @@ export const EXERCISES: Exercise[] = [
     incrementKg: 2.5,
     isBodyweight: true,
     home: {
-      name: "Chair Dips",
-      reps: "3×8–12",
-      how: "Two sturdy chairs shoulder-width apart, one hand on each seat. Lean the torso forward, lower deep without bouncing, press up. Same movement, zero gym.",
+      name: "Pseudo-Planche Push-Up",
+      reps: "3×6–12",
+      how: "Hands beside the lower ribs with fingers pointing toward your feet, shoulders leaning far past the wrists, then press. That forward lean is the exact reason dips grow chest.",
     },
   },
   // ---------- SHOULDERS (side + rear delt priority) ----------
@@ -122,9 +122,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×15 strict → add 1–2 kg. Volume is king here",
     incrementKg: 1,
     home: {
-      name: "Bottle Lateral Raise",
-      reps: "3×15–20",
-      how: "Two filled 1–2 L bottles (or a loaded bag per hand). Same strict form — lead with elbows, stop at shoulder height, 3-sec negatives. Light load + high reps still grows side delts.",
+      name: "Wide-Elbow Pike Push-Up",
+      reps: "3×8–12",
+      how: "Hips high in a folded V, hands wider than shoulders, elbows flaring straight out to the sides so the delts drive the press. Elevate the feet to load it further.",
     },
   },
   {
@@ -140,9 +140,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×15 → next pin",
     incrementKg: 2.5,
     home: {
-      name: "Leaning Lateral Raise",
-      reps: "3×12–15 / side",
-      how: "Hold a doorframe and lean your whole body away, raising a bottle or bag with the free arm. The lean loads the bottom of the rep — the home version of cable tension.",
+      name: "Wall Handstand Hold",
+      reps: "3×20–40 sec",
+      how: "Kick up against the wall, arms locked, push tall through the shoulders the whole hold. Your entire bodyweight sits on the delts. Progress with slow shoulder taps.",
     },
   },
   {
@@ -160,7 +160,7 @@ export const EXERCISES: Exercise[] = [
     home: {
       name: "Pike Push-Up",
       reps: "3×8–12",
-      how: "Hips high in a folded V, hands shoulder-width. Lower the crown of your head to the floor and press back up. Feet on a chair moves it closer to a handstand push-up.",
+      how: "Hips high in a folded V, hands shoulder-width. Lower the crown of your head to the mat and press back up. Elevating the feet moves it closer to a handstand push-up.",
     },
   },
   {
@@ -178,7 +178,7 @@ export const EXERCISES: Exercise[] = [
     home: {
       name: "Prone T-Raise",
       reps: "3×15–20",
-      how: "Lie face-down, arms out in a T, thumbs up. Lift the arms toward the ceiling and pause 1 sec — pull with the rear delts, not by pinching the blades. Bottles in hand to progress.",
+      how: "Lie face-down, arms out in a T, thumbs up. Lift the arms toward the ceiling and pause 1 sec — pull with the rear delts, not by pinching the blades. Progress with a 3-sec hold at the top.",
     },
   },
   {
@@ -194,9 +194,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×15 → next pin. Also your shoulder-health insurance",
     incrementKg: 2.5,
     home: {
-      name: "Towel Face Pull",
-      reps: "3×15–20",
-      how: "Loop a towel around a door handle or pole, lean back with a straight body, pull the ends to your forehead with elbows high, then rotate knuckles back. Steeper lean = harder.",
+      name: "Prone Y-W Swimmers",
+      reps: "3×12–15",
+      how: "Lie face-down, chest slightly lifted. Start with elbows bent in a W, squeeze the rear delts, then reach overhead to a Y and pull back to W — arms never touch the mat during the set.",
     },
   },
   // ---------- BACK (lats + upper back priority) ----------
@@ -214,9 +214,9 @@ export const EXERCISES: Exercise[] = [
     incrementKg: 2.5,
     isBodyweight: true,
     home: {
-      name: "Doorway Bar Pull-Up / Under-Table Row",
-      reps: "3×5–15",
-      how: "A doorway pull-up bar is the single best home purchase for your lats. No bar yet? Lie under a sturdy table, grab the edge and pull your chest to it with a straight body.",
+      name: "Pull-Up — same bar at home",
+      reps: "3×5–8",
+      how: "You have the bar, so the exercise travels with you unchanged. Not at full reps yet? Jump to the top and lower for 5 sec — slow negatives are what build the first strict pull-up.",
     },
   },
   {
@@ -232,9 +232,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×10 → +5 kg plate. Milestone: 45 kg",
     incrementKg: 5,
     home: {
-      name: "Assisted Pull-Up",
-      reps: "3×5–10",
-      how: "On a doorway bar, plant one foot on a chair and push just enough to complete each rep — elbows down and back, exactly like the pulldown. Use the legs less every week.",
+      name: "Negative Pull-Up",
+      reps: "3×4–6",
+      how: "Jump to the top of your bar, hold 1 sec with the chest up, then lower for a full 5 count — elbows down and back exactly like the pulldown. Own the negative and full reps follow.",
     },
   },
   {
@@ -250,9 +250,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×10 → +5 kg",
     incrementKg: 5,
     home: {
-      name: "Inverted Table Row",
-      reps: "3×8–15",
-      how: "Under a sturdy table, heels on the floor, pull your chest to the edge and squeeze the blades 1 sec. Straighter body and elevated feet = harder; backpack on your chest to load it.",
+      name: "Superman Row",
+      reps: "3×12–15",
+      how: "Lie face-down with chest lifted and arms reaching forward. Pull the elbows back to your ribs and squeeze the blades 1 sec, then reach forward again — no resting on the mat between reps.",
     },
   },
   {
@@ -268,9 +268,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×10/side → +2 kg",
     incrementKg: 2,
     home: {
-      name: "Backpack Row",
-      reps: "3×10–15 / side",
-      how: "Load a backpack with books, knee and hand on the bed, row toward your hip pocket. Full stretch at the bottom, no torso twist — the bag doesn't know it isn't a dumbbell.",
+      name: "Side-to-Side Pull-Up",
+      reps: "3×3–6 / side",
+      how: "On your bar, pull the chin toward one hand, lower under control, then pull toward the other. Each side carries most of the load — the closest bodyweight match to a one-arm row.",
     },
   },
   {
@@ -286,9 +286,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×12 → next pin. Great lat isolation without biceps stealing",
     incrementKg: 2.5,
     home: {
-      name: "Towel Slide Pullover",
+      name: "Hanging Scapular Pull",
       reps: "3×8–12",
-      how: "Kneel with both hands on a towel on smooth floor. Slide the arms forward until the lats stretch, then drag them back under your shoulders with nearly straight arms — pure lats.",
+      how: "Dead-hang from your bar with straight arms, then pull the shoulder blades down so the body rises a few centimetres — no elbow bend. Pause 2 sec. That motion IS the straight-arm pulldown.",
     },
   },
   // ---------- ARMS ----------
@@ -305,9 +305,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×10 → +2.5 kg",
     incrementKg: 2.5,
     home: {
-      name: "Backpack Curl",
-      reps: "3×10–15",
-      how: "Grip a loaded backpack by the top handle, elbows pinned to your sides, curl and squeeze. 3-sec negatives make a light bag feel heavy.",
+      name: "Chin-Up (underhand)",
+      reps: "3×5–10",
+      how: "Shoulder-width underhand grip on your bar, pull until the chin clears, control the way down. Biceps take most of the load. Not there yet? 5-sec negatives until you are.",
     },
   },
   {
@@ -323,9 +323,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×10 → +1–2 kg. Best long-head stretch",
     incrementKg: 1,
     home: {
-      name: "Doorframe Curl",
-      reps: "3×8–12",
-      how: "Grip a doorframe with straight arms and lean your body back, then curl yourself up to your hands. Arms stay behind your torso at the stretch — the same long-head bias, loaded by bodyweight.",
+      name: "Dead-Stop Chin-Up",
+      reps: "3×4–8",
+      how: "Every rep starts from a full dead hang, arms completely straight — the same stretched position this curl is built for. Pull with zero swing, lower to a dead stop, repeat.",
     },
   },
   {
@@ -341,9 +341,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×12 → +2 kg. Builds arm thickness",
     incrementKg: 2,
     home: {
-      name: "Towel Hammer Curl",
-      reps: "3×10–15",
-      how: "Thread a towel through the straps of a loaded backpack, neutral grip on both ends, curl. Crushing the towel hard gives the forearms their share too.",
+      name: "Neutral-Grip Chin + Dead Hang",
+      reps: "3×5–10 + hang",
+      how: "Use the parallel handles if your bar has them (underhand works if not) — the neutral grip is exactly the hammer position. Finish each set with a max-time dead hang for grip and forearms.",
     },
   },
   {
@@ -377,9 +377,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×12 → next pin. Long-head = arm size",
     incrementKg: 2.5,
     home: {
-      name: "Bodyweight Skull Crusher",
-      reps: "3×8–12",
-      how: "Hands on a table or counter edge, walk your feet back, lower your head below your hands by bending only the elbows, then extend. The lower the surface, the harder — same long-head stretch.",
+      name: "Sphinx Push-Up",
+      reps: "3×6–12",
+      how: "Start in a forearm plank, press up onto the palms by extending only the elbows, lower the forearms back down with control. A bodyweight skull crusher — all triceps, long head under stretch.",
     },
   },
   // ---------- LEGS (maintain + grow) ----------
@@ -396,9 +396,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×8 → +2.5–5 kg",
     incrementKg: 2.5,
     home: {
-      name: "Bulgarian Split Squat",
-      reps: "3×8–12 / side",
-      how: "Rear foot on a chair, front shin vertical, sink straight down until the rear knee nearly touches. Hug a loaded backpack to your chest — this humbles most gym leg days.",
+      name: "Tempo Squat → Pistol Progression",
+      reps: "3×10–20",
+      how: "3 sec down, 1-sec pause at the bottom, drive up. When 20 are easy, move to split squats, then pistol progressions — one leg out front, sit back slow, stand. No load needed for a long time.",
     },
   },
   {
@@ -414,9 +414,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×10 → +10 kg",
     incrementKg: 10,
     home: {
-      name: "Chair Step-Up",
+      name: "Reverse Lunge",
       reps: "3×10–12 / side",
-      how: "Step fully onto a sturdy chair or stair, drive through the heel, lower yourself down slow — don't drop. Backpack for load; don't let the knee cave in.",
+      how: "Step back into a lunge, front shin vertical, rear knee kissing the mat, then drive through the front heel to stand. 3-sec descents; never let the knee cave in.",
     },
   },
   {
@@ -432,9 +432,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×10 → +2.5–5 kg",
     incrementKg: 2.5,
     home: {
-      name: "Single-Leg RDL",
+      name: "Single-Leg Hip Hinge",
       reps: "3×10–12 / side",
-      how: "Backpack in both hands, hinge at the hips on one leg with a flat back until the hamstring stretches, stand tall by squeezing the glute. The balance work is free core training.",
+      how: "On one leg, arms reaching forward as the counterweight, push the hips back with a flat back until the hamstring stretches, stand tall by squeezing the glute. Slow and strict — the balance is part of the work.",
     },
   },
   {
@@ -450,9 +450,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×12 → next pin",
     incrementKg: 5,
     home: {
-      name: "Sliding Leg Curl",
+      name: "Glute-Bridge Walkout",
       reps: "3×8–12",
-      how: "Lie on your back, heels on a towel on smooth floor. Bridge the hips up, slide the heels out, then curl them back under you — hips stay high the whole set.",
+      how: "Bridge the hips up, then walk the heels out step by step until the legs are nearly straight, and walk them back — hips never drop. Hamstrings work every centimetre of the way.",
     },
   },
   {
@@ -468,9 +468,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×12 → next pin",
     incrementKg: 5,
     home: {
-      name: "Sissy Squat",
+      name: "Reverse Nordic",
       reps: "3×8–12",
-      how: "Hold a doorframe, rise onto your toes, let the knees travel forward as the body leans back in one straight line, then squeeze the quads to stand. Start shallow — it bites.",
+      how: "Kneel on the mat, body in one straight line from knees to head, lean back as far as the quads allow, then pull yourself upright. Pure knee extension — start shallow, it bites.",
     },
   },
   {
@@ -486,9 +486,9 @@ export const EXERCISES: Exercise[] = [
     progression: "3×15 → +5 kg",
     incrementKg: 5,
     home: {
-      name: "Single-Leg Stair Calf Raise",
-      reps: "3×12–15 / side",
-      how: "Ball of one foot on a stair edge, deep 2-sec stretch at the bottom, full rise onto the toe. One leg at a time is load enough; backpack when it isn't.",
+      name: "Single-Leg Calf Raise",
+      reps: "3×15–20 / side",
+      how: "One foot at a time — full rise onto the toe, 2-sec squeeze at the top, slow down. Ball of the foot on the edge of whatever elevates your feet for push-ups gives the deep stretch back.",
     },
   },
   // ---------- CORE (waist priority = keep it tight, don't thicken obliques) ----------
@@ -506,9 +506,9 @@ export const EXERCISES: Exercise[] = [
     incrementKg: 0,
     isBodyweight: true,
     home: {
-      name: "Lying Leg Raise",
-      reps: "3×12–15",
-      how: "Lie flat with hands under your hips. Curl the pelvis up as the legs rise — don't just swing the legs — and lower with a 3-sec negative. Same pelvic curl, no bar needed.",
+      name: "Hanging Knee Raise — same bar",
+      reps: "3×10–15",
+      how: "Your pull-up bar does this one at home unchanged — curl the pelvis, no swinging. No room to hang? Lying leg raises on the mat with a 3-sec negative hit the same curl.",
     },
   },
   {
