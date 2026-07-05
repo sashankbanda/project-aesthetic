@@ -6,6 +6,7 @@ import DotNumber from "@/components/dot-number";
 import { CHECK_FRAMES, DUMBBELL_FRAMES, GlyphMatrix, MOON_FRAMES, TROPHY_FRAMES } from "@/components/glyph";
 import MuscleMap from "@/components/muscle-map";
 import ExerciseMedia from "@/components/exercise-media";
+import HomeAlt from "@/components/home-alt";
 import { Btn, Card, Meter, PageHead, Pill, Stepper } from "@/components/ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { adviseFor, prFor } from "@/lib/overload";
@@ -928,6 +929,7 @@ function ExerciseCard({
               <InfoBlock icon={<Check size={12} />} title="Form cues" items={ex.cues} />
               <InfoBlock icon={<AlertTriangle size={12} />} title="Common mistakes" items={ex.mistakes} />
               <InfoBlock icon={<Repeat size={12} />} title="Alternatives" items={ex.alternatives} />
+              <HomeAlt ex={ex} />
               <div className="rounded-2xl border border-line bg-elev px-3.5 py-2.5">
                 <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-accent2">
                   <TrendingUp size={12} /> Progression

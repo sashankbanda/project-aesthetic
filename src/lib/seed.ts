@@ -29,6 +29,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Incline Barbell Press", "Incline Machine Press", "Low-to-High Cable Fly"],
     progression: "Hit 3×10 with control → add 2 kg per dumbbell",
     incrementKg: 2,
+    home: {
+      name: "Decline Push-Up",
+      reps: "3×8–15",
+      how: "Feet on a bed or chair, hands slightly wider than shoulders — the higher your feet, the more upper chest. Slow 3-sec negatives; add a backpack of books when 15 clean reps get easy.",
+    },
   },
   {
     id: "incline-bb-press",
@@ -42,6 +47,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Incline Dumbbell Press", "Smith Incline Press"],
     progression: "3×8 clean reps → add 2.5 kg",
     incrementKg: 2.5,
+    home: {
+      name: "Deep Decline Push-Up",
+      reps: "3×6–12",
+      how: "Feet elevated to table height, hands on two thick books for a deeper stretch at the bottom. Press up and slightly back — same bar path, no bar.",
+    },
   },
   {
     id: "flat-bb-bench",
@@ -55,6 +65,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Flat Dumbbell Press", "Machine Chest Press"],
     progression: "3×8 → add 2.5 kg. Milestone: 60 kg × 8",
     incrementKg: 2.5,
+    home: {
+      name: "Weighted Push-Up",
+      reps: "3×10–20",
+      how: "Standard push-up: body in one line, elbows ~60°, chest to the floor. Past 20 easy reps, wear a tightly packed backpack high on your back.",
+    },
   },
   {
     id: "cable-fly-low-high",
@@ -68,6 +83,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Incline Dumbbell Fly", "Pec Deck (seat low)"],
     progression: "3×12 with 2-sec squeeze → next pin",
     incrementKg: 2.5,
+    home: {
+      name: "Towel Floor Fly",
+      reps: "3×8–12",
+      how: "On smooth floor, a towel under each hand in push-up position. Let the arms slide out wide, then squeeze the chest to drag them back in. Slight elbow bend, never locked.",
+    },
   },
   {
     id: "dips",
@@ -82,6 +102,11 @@ export const EXERCISES: Exercise[] = [
     progression: "3×12 bodyweight → add weight with belt",
     incrementKg: 2.5,
     isBodyweight: true,
+    home: {
+      name: "Chair Dips",
+      reps: "3×8–12",
+      how: "Two sturdy chairs shoulder-width apart, one hand on each seat. Lean the torso forward, lower deep without bouncing, press up. Same movement, zero gym.",
+    },
   },
   // ---------- SHOULDERS (side + rear delt priority) ----------
   {
@@ -96,6 +121,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Cable Lateral Raise", "Machine Lateral Raise"],
     progression: "3×15 strict → add 1–2 kg. Volume is king here",
     incrementKg: 1,
+    home: {
+      name: "Bottle Lateral Raise",
+      reps: "3×15–20",
+      how: "Two filled 1–2 L bottles (or a loaded bag per hand). Same strict form — lead with elbows, stop at shoulder height, 3-sec negatives. Light load + high reps still grows side delts.",
+    },
   },
   {
     id: "cable-lateral-raise",
@@ -109,6 +139,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Dumbbell Lateral Raise", "Lying Incline Lateral Raise"],
     progression: "3×15 → next pin",
     incrementKg: 2.5,
+    home: {
+      name: "Leaning Lateral Raise",
+      reps: "3×12–15 / side",
+      how: "Hold a doorframe and lean your whole body away, raising a bottle or bag with the free arm. The lean loads the bottom of the rep — the home version of cable tension.",
+    },
   },
   {
     id: "db-shoulder-press",
@@ -122,6 +157,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Machine Shoulder Press", "Overhead Barbell Press"],
     progression: "3×10 → add 2 kg per dumbbell",
     incrementKg: 2,
+    home: {
+      name: "Pike Push-Up",
+      reps: "3×8–12",
+      how: "Hips high in a folded V, hands shoulder-width. Lower the crown of your head to the floor and press back up. Feet on a chair moves it closer to a handstand push-up.",
+    },
   },
   {
     id: "reverse-pec-deck",
@@ -135,6 +175,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Bent-over DB Reverse Fly", "Face Pulls"],
     progression: "3×15 with pause → next pin",
     incrementKg: 2.5,
+    home: {
+      name: "Prone T-Raise",
+      reps: "3×15–20",
+      how: "Lie face-down, arms out in a T, thumbs up. Lift the arms toward the ceiling and pause 1 sec — pull with the rear delts, not by pinching the blades. Bottles in hand to progress.",
+    },
   },
   {
     id: "face-pull",
@@ -148,6 +193,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Reverse Pec Deck", "Band Pull-aparts"],
     progression: "3×15 → next pin. Also your shoulder-health insurance",
     incrementKg: 2.5,
+    home: {
+      name: "Towel Face Pull",
+      reps: "3×15–20",
+      how: "Loop a towel around a door handle or pole, lean back with a straight body, pull the ends to your forehead with elbows high, then rotate knuckles back. Steeper lean = harder.",
+    },
   },
   // ---------- BACK (lats + upper back priority) ----------
   {
@@ -163,6 +213,11 @@ export const EXERCISES: Exercise[] = [
     progression: "Assisted → bodyweight singles → 3×8 → weighted",
     incrementKg: 2.5,
     isBodyweight: true,
+    home: {
+      name: "Doorway Bar Pull-Up / Under-Table Row",
+      reps: "3×5–15",
+      how: "A doorway pull-up bar is the single best home purchase for your lats. No bar yet? Lie under a sturdy table, grab the edge and pull your chest to it with a straight body.",
+    },
   },
   {
     id: "lat-pulldown",
@@ -176,6 +231,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Pull-up", "Single-arm Cable Pulldown"],
     progression: "3×10 → +5 kg plate. Milestone: 45 kg",
     incrementKg: 5,
+    home: {
+      name: "Assisted Pull-Up",
+      reps: "3×5–10",
+      how: "On a doorway bar, plant one foot on a chair and push just enough to complete each rep — elbows down and back, exactly like the pulldown. Use the legs less every week.",
+    },
   },
   {
     id: "seated-cable-row",
@@ -189,6 +249,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Chest-supported Row", "Single-arm DB Row"],
     progression: "3×10 → +5 kg",
     incrementKg: 5,
+    home: {
+      name: "Inverted Table Row",
+      reps: "3×8–15",
+      how: "Under a sturdy table, heels on the floor, pull your chest to the edge and squeeze the blades 1 sec. Straighter body and elevated feet = harder; backpack on your chest to load it.",
+    },
   },
   {
     id: "single-arm-db-row",
@@ -202,6 +267,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Barbell Row", "Chest-supported Row"],
     progression: "3×10/side → +2 kg",
     incrementKg: 2,
+    home: {
+      name: "Backpack Row",
+      reps: "3×10–15 / side",
+      how: "Load a backpack with books, knee and hand on the bed, row toward your hip pocket. Full stretch at the bottom, no torso twist — the bag doesn't know it isn't a dumbbell.",
+    },
   },
   {
     id: "straight-arm-pulldown",
@@ -215,6 +285,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Dumbbell Pullover", "Machine Pullover"],
     progression: "3×12 → next pin. Great lat isolation without biceps stealing",
     incrementKg: 2.5,
+    home: {
+      name: "Towel Slide Pullover",
+      reps: "3×8–12",
+      how: "Kneel with both hands on a towel on smooth floor. Slide the arms forward until the lats stretch, then drag them back under your shoulders with nearly straight arms — pure lats.",
+    },
   },
   // ---------- ARMS ----------
   {
@@ -229,6 +304,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Dumbbell Curl", "Cable Curl"],
     progression: "3×10 → +2.5 kg",
     incrementKg: 2.5,
+    home: {
+      name: "Backpack Curl",
+      reps: "3×10–15",
+      how: "Grip a loaded backpack by the top handle, elbows pinned to your sides, curl and squeeze. 3-sec negatives make a light bag feel heavy.",
+    },
   },
   {
     id: "incline-db-curl",
@@ -242,6 +322,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Bayesian Cable Curl", "Preacher Curl"],
     progression: "3×10 → +1–2 kg. Best long-head stretch",
     incrementKg: 1,
+    home: {
+      name: "Doorframe Curl",
+      reps: "3×8–12",
+      how: "Grip a doorframe with straight arms and lean your body back, then curl yourself up to your hands. Arms stay behind your torso at the stretch — the same long-head bias, loaded by bodyweight.",
+    },
   },
   {
     id: "hammer-curl",
@@ -255,6 +340,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Rope Hammer Curl", "Reverse Curl"],
     progression: "3×12 → +2 kg. Builds arm thickness",
     incrementKg: 2,
+    home: {
+      name: "Towel Hammer Curl",
+      reps: "3×10–15",
+      how: "Thread a towel through the straps of a loaded backpack, neutral grip on both ends, curl. Crushing the towel hard gives the forearms their share too.",
+    },
   },
   {
     id: "triceps-pushdown",
@@ -268,6 +358,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Bar Pushdown", "Bench Dips"],
     progression: "3×12 → next pin",
     incrementKg: 2.5,
+    home: {
+      name: "Diamond Push-Up",
+      reps: "3×8–15",
+      how: "Hands close with thumbs and index fingers touching, elbows tracking back along the ribs. Lock out hard at the top of every rep — that's the pushdown squeeze.",
+    },
   },
   {
     id: "overhead-triceps-ext",
@@ -281,6 +376,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["DB Overhead Extension", "Skull Crushers"],
     progression: "3×12 → next pin. Long-head = arm size",
     incrementKg: 2.5,
+    home: {
+      name: "Bodyweight Skull Crusher",
+      reps: "3×8–12",
+      how: "Hands on a table or counter edge, walk your feet back, lower your head below your hands by bending only the elbows, then extend. The lower the surface, the harder — same long-head stretch.",
+    },
   },
   // ---------- LEGS (maintain + grow) ----------
   {
@@ -295,6 +395,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Hack Squat", "Leg Press", "Goblet Squat"],
     progression: "3×8 → +2.5–5 kg",
     incrementKg: 2.5,
+    home: {
+      name: "Bulgarian Split Squat",
+      reps: "3×8–12 / side",
+      how: "Rear foot on a chair, front shin vertical, sink straight down until the rear knee nearly touches. Hug a loaded backpack to your chest — this humbles most gym leg days.",
+    },
   },
   {
     id: "leg-press",
@@ -308,6 +413,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Hack Squat", "Squat"],
     progression: "3×10 → +10 kg",
     incrementKg: 10,
+    home: {
+      name: "Chair Step-Up",
+      reps: "3×10–12 / side",
+      how: "Step fully onto a sturdy chair or stair, drive through the heel, lower yourself down slow — don't drop. Backpack for load; don't let the knee cave in.",
+    },
   },
   {
     id: "rdl",
@@ -321,6 +431,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["DB RDL", "Seated Leg Curl"],
     progression: "3×10 → +2.5–5 kg",
     incrementKg: 2.5,
+    home: {
+      name: "Single-Leg RDL",
+      reps: "3×10–12 / side",
+      how: "Backpack in both hands, hinge at the hips on one leg with a flat back until the hamstring stretches, stand tall by squeezing the glute. The balance work is free core training.",
+    },
   },
   {
     id: "leg-curl",
@@ -334,6 +449,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Lying Leg Curl", "Nordic Curl"],
     progression: "3×12 → next pin",
     incrementKg: 5,
+    home: {
+      name: "Sliding Leg Curl",
+      reps: "3×8–12",
+      how: "Lie on your back, heels on a towel on smooth floor. Bridge the hips up, slide the heels out, then curl them back under you — hips stay high the whole set.",
+    },
   },
   {
     id: "leg-extension",
@@ -347,6 +467,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Sissy Squat", "Front Squat"],
     progression: "3×12 → next pin",
     incrementKg: 5,
+    home: {
+      name: "Sissy Squat",
+      reps: "3×8–12",
+      how: "Hold a doorframe, rise onto your toes, let the knees travel forward as the body leans back in one straight line, then squeeze the quads to stand. Start shallow — it bites.",
+    },
   },
   {
     id: "calf-raise",
@@ -360,6 +485,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Seated Calf Raise", "Leg-press Calf Raise"],
     progression: "3×15 → +5 kg",
     incrementKg: 5,
+    home: {
+      name: "Single-Leg Stair Calf Raise",
+      reps: "3×12–15 / side",
+      how: "Ball of one foot on a stair edge, deep 2-sec stretch at the bottom, full rise onto the toe. One leg at a time is load enough; backpack when it isn't.",
+    },
   },
   // ---------- CORE (waist priority = keep it tight, don't thicken obliques) ----------
   {
@@ -375,6 +505,11 @@ export const EXERCISES: Exercise[] = [
     progression: "3×12 → straighten legs → hanging leg raise",
     incrementKg: 0,
     isBodyweight: true,
+    home: {
+      name: "Lying Leg Raise",
+      reps: "3×12–15",
+      how: "Lie flat with hands under your hips. Curl the pelvis up as the legs rise — don't just swing the legs — and lower with a 3-sec negative. Same pelvic curl, no bar needed.",
+    },
   },
   {
     id: "cable-crunch",
@@ -388,6 +523,11 @@ export const EXERCISES: Exercise[] = [
     alternatives: ["Machine Crunch", "Weighted Crunch"],
     progression: "3×15 → next pin",
     incrementKg: 2.5,
+    home: {
+      name: "Reverse Crunch",
+      reps: "3×12–15",
+      how: "Lie down, knees bent, roll the pelvis off the floor to bring knees to chest, lower slow. Exhale hard at the top — the same spine-curl the cable teaches, driven from below.",
+    },
   },
   {
     id: "plank",
@@ -402,6 +542,11 @@ export const EXERCISES: Exercise[] = [
     progression: "3×45 sec → 60 sec → weighted",
     incrementKg: 0,
     isBodyweight: true,
+    home: {
+      name: "RKC Plank",
+      reps: "3×20–30 sec",
+      how: "Already home-friendly. The harder version: squeeze glutes and fists, pull the elbows toward the toes without anything moving. 20 seconds done right should shake.",
+    },
   },
 ];
 

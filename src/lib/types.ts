@@ -38,6 +38,14 @@ export interface Exercise {
   /** weight step used by the overload engine (2.5 kg barbell, 2 kg DBs…) */
   incrementKg: number;
   isBodyweight?: boolean;
+  /** bodyweight / household substitute hitting the same primary muscle — for no-gym days */
+  home?: {
+    name: string;
+    /** suggested scheme, e.g. "3×8–15" */
+    reps: string;
+    /** setup + how to bias the target muscle + how to progress */
+    how: string;
+  };
   /**
    * Optional demo images (e.g. mannequin renders) served from /public.
    * Drop files in public/exercises/<id>/ and list them here — they show

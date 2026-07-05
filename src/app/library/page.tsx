@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import Mounted from "@/components/mounted";
 import MuscleMap from "@/components/muscle-map";
 import ExerciseMedia from "@/components/exercise-media";
+import HomeAlt from "@/components/home-alt";
 import { Card, PageHead, Pill, inputCls } from "@/components/ui";
 import { EXERCISES } from "@/lib/seed";
 import { prFor } from "@/lib/overload";
@@ -124,6 +125,7 @@ function ExerciseEntry({ ex }: { ex: Exercise }) {
           <Info icon={<Check size={12} />} title="Form cues" items={ex.cues} />
           <Info icon={<AlertTriangle size={12} />} title="Common mistakes" items={ex.mistakes} />
           <Info icon={<Repeat size={12} />} title="Alternatives" items={ex.alternatives} />
+          <HomeAlt ex={ex} />
           <div className="rounded-xl border border-line bg-elev px-3.5 py-2.5">
             <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-accent2">
               <TrendingUp size={12} /> Progression
