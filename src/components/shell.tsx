@@ -42,6 +42,7 @@ const NAV = [
   { href: "/journal", icon: NotebookPen, label: "Journal" },
   { href: "/achievements", icon: Trophy, label: "Achievements" },
   { href: "/library", icon: BookOpen, label: "Library" },
+  { href: "/more", icon: LayoutGrid, label: "Account & Settings" },
 ] as const;
 
 /** Which tab lights up for a given route. */
