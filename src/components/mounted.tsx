@@ -1,5 +1,6 @@
 "use client";
 import { useSyncExternalStore, type ReactNode } from "react";
+import { GlyphSpinner } from "./glyph";
 
 const emptySubscribe = () => () => {};
 
@@ -17,8 +18,9 @@ export default function Mounted({ children }: { children: ReactNode }) {
   );
   if (!ready)
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-faint">
-        Loading…
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-5">
+        <GlyphSpinner cell={5} />
+        <div className="label-mono text-faint">Loading</div>
       </div>
     );
   return <>{children}</>;

@@ -1,0 +1,247 @@
+"use client";
+// ============================================================
+// Glyph Matrix — Nothing-style dot-matrix animations.
+// GlyphMatrix plays hand-authored frames ('1' lit · '2' dim ·
+// '.' off); GlyphSpinner is a procedural orbiting-dot loader.
+// Both freeze on prefers-reduced-motion.
+// ============================================================
+import { useEffect, useState } from "react";
+
+// ---------- frame art ----------
+// glyphs are authored like the Glyph Editor: rows of . 1 2
+
+export const FLAME_FRAMES: string[][] = [
+  [
+    "...1....",
+    "...11...",
+    "..111...",
+    "..1111..",
+    ".11111..",
+    ".112211.",
+    ".122221.",
+    ".122221.",
+    "..1221..",
+    "...11...",
+  ],
+  [
+    "....1...",
+    "...11...",
+    "...111..",
+    "..1111..",
+    ".11111..",
+    ".112211.",
+    ".122221.",
+    ".122221.",
+    "..1221..",
+    "...11...",
+  ],
+  [
+    "...1....",
+    "..11....",
+    "..111...",
+    ".1111...",
+    ".11111..",
+    ".112211.",
+    ".122221.",
+    ".122221.",
+    "..1221..",
+    "...11...",
+  ],
+];
+
+export const MOON_FRAMES: string[][] = [
+  [
+    "............",
+    "....1111....",
+    "..111111.1..",
+    ".11111......",
+    ".1111.......",
+    "11111.....2.",
+    "11111.......",
+    ".1111.......",
+    ".11111......",
+    "..111111....",
+    "....1111....",
+    "............",
+  ],
+  [
+    "............",
+    "....1111....",
+    "..111111....",
+    ".11111....1.",
+    ".1111.......",
+    "11111.......",
+    "11111.......",
+    ".1111....2..",
+    ".11111......",
+    "..111111....",
+    "....1111....",
+    "............",
+  ],
+  [
+    "............",
+    "....1111....",
+    "..111111.2..",
+    ".11111......",
+    ".1111.......",
+    "11111.....1.",
+    "11111.......",
+    ".1111.......",
+    ".11111......",
+    "..111111....",
+    "....1111....",
+    "............",
+  ],
+];
+
+export const CHECK_FRAMES: string[][] = [
+  [
+    "............",
+    "..........1.",
+    ".........11.",
+    "........11..",
+    ".1.....11...",
+    ".11...11....",
+    "..11.11.....",
+    "...111......",
+    "....1.......",
+    "............",
+  ],
+  [
+    ".....2......",
+    "..........1.",
+    ".2.......11.",
+    "........11..",
+    ".1.....11..2",
+    ".11...11....",
+    "..11.11.....",
+    "2..111......",
+    "....1.......",
+    ".......2....",
+  ],
+  [
+    "............",
+    "..........1.",
+    ".........11.",
+    "........11..",
+    ".1.....11...",
+    ".11...11....",
+    "..11.11.....",
+    "...111......",
+    "....1.......",
+    "............",
+  ],
+];
+
+// ---------- components ----------
+
+export function GlyphMatrix({
+  frames,
+  fps = 5,
+  cell = 5,
+  color = "#f4f4f2",
+  className = "",
+}: {
+  frames: string[][];
+  fps?: number;
+  cell?: number;
+  color?: string;
+  className?: string;
+}) {
+  const [i, setI] = useState(0);
+
+  useEffect(() => {
+    if (frames.length <= 1) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => setI((n) => (n + 1) % frames.length), 1000 / fps);
+    return () => clearInterval(t);
+  }, [frames.length, fps]);
+
+  const frame = frames[i % frames.length];
+  const rows = frame.length;
+  const cols = frame[0].length;
+  const r = cell * 0.38;
+
+  return (
+    <svg
+      viewBox={`0 0 ${cols * cell} ${rows * cell}`}
+      width={cols * cell}
+      height={rows * cell}
+      className={className}
+      style={{ filter: `drop-shadow(0 0 ${cell}px ${color}44)` }}
+      aria-hidden
+    >
+      {frame.flatMap((row, y) =>
+        [...row].map((ch, x) =>
+          ch === "1" || ch === "2" ? (
+            <circle
+              key={`${x}-${y}`}
+              cx={x * cell + cell / 2}
+              cy={y * cell + cell / 2}
+              r={r}
+              fill={color}
+              opacity={ch === "2" ? 0.35 : 1}
+            />
+          ) : null,
+        ),
+      )}
+    </svg>
+  );
+}
+
+/** Procedural loader — a dot with a fading tail orbiting a matrix ring. */
+export function GlyphSpinner({
+  cell = 5,
+  color = "#f4f4f2",
+  className = "",
+}: {
+  cell?: number;
+  color?: string;
+  className?: string;
+}) {
+  const SIZE = 13; // grid cells per side
+  const SLOTS = 20;
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => setTick((n) => (n + 1) % SLOTS), 80);
+    return () => clearInterval(t);
+  }, []);
+
+  const c = (SIZE - 1) / 2;
+  const radius = c - 1;
+  const dots = Array.from({ length: SLOTS }, (_, s) => {
+    const angle = (s / SLOTS) * Math.PI * 2 - Math.PI / 2;
+    const x = Math.round(c + radius * Math.cos(angle));
+    const y = Math.round(c + radius * Math.sin(angle));
+    // distance behind the head, 0 = head
+    const behind = (tick - s + SLOTS) % SLOTS;
+    const opacity = behind === 0 ? 1 : behind <= 4 ? 0.55 - behind * 0.11 : 0.1;
+    return { x, y, opacity };
+  });
+  const r = cell * 0.38;
+
+  return (
+    <svg
+      viewBox={`0 0 ${SIZE * cell} ${SIZE * cell}`}
+      width={SIZE * cell}
+      height={SIZE * cell}
+      className={className}
+      style={{ filter: `drop-shadow(0 0 ${cell}px ${color}44)` }}
+      aria-label="loading"
+      role="img"
+    >
+      {dots.map((d, i) => (
+        <circle
+          key={i}
+          cx={d.x * cell + cell / 2}
+          cy={d.y * cell + cell / 2}
+          r={r}
+          fill={color}
+          opacity={d.opacity}
+        />
+      ))}
+    </svg>
+  );
+}

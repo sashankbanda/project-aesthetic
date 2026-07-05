@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Mounted from "@/components/mounted";
 import DotNumber from "@/components/dot-number";
+import { CHECK_FRAMES, GlyphMatrix, MOON_FRAMES } from "@/components/glyph";
 import MuscleMap from "@/components/muscle-map";
 import ExerciseMedia from "@/components/exercise-media";
 import { Btn, Card, Meter, PageHead, Pill, Stepper } from "@/components/ui";
@@ -20,7 +21,6 @@ import {
   Clock,
   Info,
   LogIn,
-  Moon,
   MoreHorizontal,
   Pause,
   Play,
@@ -264,9 +264,9 @@ function WorkoutInner() {
 
       {day.isRest ? (
         <Card className="py-12 text-center">
-          <Moon className="mx-auto text-accent" size={44} strokeWidth={1.5} />
-          <div className="mt-3 text-xl font-bold">Rest Day</div>
-          <p className="mx-auto mt-2 max-w-sm text-sm text-dim">
+          <GlyphMatrix frames={MOON_FRAMES} fps={1.6} cell={5.5} className="mx-auto" />
+          <div className="mt-4 text-xl font-light">Rest Day</div>
+          <p className="mx-auto mt-2 max-w-sm text-sm font-light text-dim">
             Walk, stretch, hit your protein, sleep 8 hours. Growth happens here.
           </p>
         </Card>
@@ -510,10 +510,8 @@ function SessionSummary({
       <button aria-label="close" className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="rise-in card relative max-h-[85vh] w-full max-w-sm overflow-y-auto border-accent/25 p-6 shadow-2xl shadow-black/70">
         <div className="text-center">
-          <div className="bg-grad mx-auto grid h-14 w-14 place-items-center rounded-2xl text-white shadow-lg shadow-accent/40">
-            <CheckCheck size={26} />
-          </div>
-          <div className="mt-3 text-xl font-bold">Workout Complete</div>
+          <GlyphMatrix frames={CHECK_FRAMES} fps={4} cell={5} color="#ff4b2f" className="mx-auto" />
+          <div className="mt-3 text-xl font-light">Workout Complete</div>
           {report && report.hasTimestamps && (
             <>
               <div className="mt-3 flex items-end justify-center gap-1.5">
@@ -702,7 +700,7 @@ function RestPopup({
               />
             </svg>
             {finished ? (
-              <Check size={44} strokeWidth={2.2} className="text-accent" />
+              <GlyphMatrix frames={CHECK_FRAMES} fps={5} cell={7} color="#ff4b2f" />
             ) : (
               <DotNumber value={`${mm}:${ss}`} cell={mm >= 10 ? 4.5 : 5.5} ghost={false} />
             )}

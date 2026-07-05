@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Mounted from "@/components/mounted";
 import { Card, Meter, Pill, SectionTitle, Tile } from "@/components/ui";
+import { FLAME_FRAMES, GlyphMatrix } from "@/components/glyph";
 import { Sparkline } from "@/components/charts";
 import { useApp, todayStr, update } from "@/lib/store";
 import { weeklyCompletion, workoutStreak } from "@/lib/overload";
@@ -11,7 +12,6 @@ import {
   Check,
   CheckCheck,
   Droplets,
-  Flame,
   Footprints,
   Moon,
   Smile,
@@ -116,12 +116,12 @@ function HomeInner() {
           label="Streak"
           value={streak}
           cell={6}
-          sub={
-            <span className="flex items-center gap-1">
-              <Flame size={11} /> {streak === 1 ? "day" : "days"}
-            </span>
-          }
-        />
+          sub={streak === 1 ? "day" : "days"}
+        >
+          <div className="absolute -top-1 right-0">
+            <GlyphMatrix frames={FLAME_FRAMES} fps={4} cell={3.5} color="#ffffff" />
+          </div>
+        </Tile>
         <Tile
           tone="dark"
           label="Weight"
