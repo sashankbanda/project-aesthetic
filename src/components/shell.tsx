@@ -138,6 +138,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
+      {/* bottom fade — content dissolves cleanly behind the floating nav */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 h-36 bg-gradient-to-t from-bg from-30% via-bg/85 via-60% to-transparent md:hidden" />
+
       {/* floating pill tab bar — mobile only */}
       <nav className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[max(env(safe-area-inset-bottom),14px)] md:hidden">
         <div className="glass mx-auto flex max-w-sm items-stretch justify-around rounded-full border border-line/70 px-2 py-1 shadow-2xl shadow-black/70">

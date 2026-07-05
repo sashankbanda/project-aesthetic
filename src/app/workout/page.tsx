@@ -702,9 +702,9 @@ function RestPopup({
               />
             </svg>
             {finished ? (
-              <Check size={48} strokeWidth={2.2} className="text-accent" />
+              <Check size={44} strokeWidth={2.2} className="text-accent" />
             ) : (
-              <DotNumber value={`${mm}:${ss}`} cell={8} ghost={false} />
+              <DotNumber value={`${mm}:${ss}`} cell={mm >= 10 ? 4.5 : 5.5} ghost={false} />
             )}
           </div>
 

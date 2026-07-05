@@ -15,7 +15,6 @@ import {
   Footprints,
   Moon,
   Smile,
-  Sparkles,
   Target,
 } from "lucide-react";
 
@@ -106,7 +105,6 @@ function HomeInner() {
                 </span>
               )}
             </div>
-            <Sparkles className="absolute -right-1 -top-1 text-black/10" size={72} strokeWidth={1} />
           </div>
         </div>
       </Link>

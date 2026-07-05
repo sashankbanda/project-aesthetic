@@ -135,16 +135,45 @@ textarea,
   letter-spacing: 0.18em;
 }
 
-/* faint dot-grid texture, masked into a soft blob (decorative) */
+/* dot-grid texture masked into a soft blob that drifts like liquid */
 @utility dot-texture {
   position: absolute;
-  inset: 0;
+  inset: -25%;
   pointer-events: none;
-  background-image: radial-gradient(currentColor 1px, transparent 1.6px);
-  background-size: 11px 11px;
-  mask-image: radial-gradient(60% 55% at 72% 25%, black, transparent 75%);
-  -webkit-mask-image: radial-gradient(60% 55% at 72% 25%, black, transparent 75%);
-  opacity: 0.14;
+  background-image: radial-gradient(currentColor 1.2px, transparent 1.7px);
+  background-size: 12px 12px;
+  mask-image: radial-gradient(42% 38% at 50% 50%, black, transparent 72%);
+  -webkit-mask-image: radial-gradient(42% 38% at 50% 50%, black, transparent 72%);
+  mask-size: 200% 200%;
+  -webkit-mask-size: 200% 200%;
+  opacity: 0.22;
+  animation: liquidDrift 18s ease-in-out infinite alternate;
+}
+
+@keyframes liquidDrift {
+  0% {
+    mask-position: 88% 8%;
+    -webkit-mask-position: 88% 8%;
+    background-position: 0px 0px;
+  }
+  50% {
+    mask-position: 68% 32%;
+    -webkit-mask-position: 68% 32%;
+    background-position: 7px 5px;
+  }
+  100% {
+    mask-position: 80% 52%;
+    -webkit-mask-position: 80% 52%;
+    background-position: 14px 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-texture {
+    animation: none;
+    mask-position: 85% 15%;
+    -webkit-mask-position: 85% 15%;
+  }
 }
 
 /* ---------- motion ---------- */
