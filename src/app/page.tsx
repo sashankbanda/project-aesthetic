@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import Mounted from "@/components/mounted";
+import SyncNudge from "@/components/sync-nudge";
 import { Card, Meter, Pill, SectionTitle, Tile } from "@/components/ui";
 import { FLAME_FRAMES, GlyphMatrix, MOOD_GLYPHS } from "@/components/glyph";
 import { Sparkline } from "@/components/charts";
@@ -161,6 +162,9 @@ function HomeInner() {
           </div>
         )}
       </Card>
+
+      {/* explore mode: quiet backup nudge (hidden when signed in/dismissed) */}
+      <SyncNudge />
 
       {/* daily check-in — 3 taps, no page hopping */}
       <SectionTitle>Daily check-in</SectionTitle>

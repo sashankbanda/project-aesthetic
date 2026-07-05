@@ -577,7 +577,7 @@ export const DEFAULT_ROADMAP: RoadmapGoal[] = [
 ];
 
 export const DEFAULT_PROFILE: Profile = {
-  name: "Shank",
+  name: "Athlete",
   heightCm: 172,
   birthYear: 2000,
   phase: "Body Recomposition",
@@ -594,6 +594,7 @@ export function createInitialState(): AppState {
   const today = new Date().toISOString().slice(0, 10);
   return {
     version: 1,
+    onboarded: false,
     profile: DEFAULT_PROFILE,
     plan: DEFAULT_PLAN,
     sessions: [],

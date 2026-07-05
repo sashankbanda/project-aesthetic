@@ -172,6 +172,8 @@ export interface AppState {
   version: number;
   /** stamped on every change — drives last-write-wins sync */
   modifiedAt?: string;
+  /** first-run wizard completed (or skipped) */
+  onboarded?: boolean;
   profile: Profile;
   plan: WorkoutDay[];
   sessions: WorkoutSession[];

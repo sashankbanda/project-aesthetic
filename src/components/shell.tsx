@@ -18,6 +18,7 @@ import {
   Upload,
 } from "lucide-react";
 import { exportState, importState } from "@/lib/store";
+import OnboardingGate from "./onboarding";
 
 /** Bottom tab bar — the app's primary navigation. */
 const TABS = [
@@ -80,6 +81,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh">
+      {/* first-run wizard (fixed overlay; renders nothing once onboarded) */}
+      <OnboardingGate />
+
       {/* desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-60 flex-col gap-1 border-r border-line/50 bg-elev/80 p-5 backdrop-blur-md md:flex">
         <div className="mb-6 flex items-center gap-3 px-2 pt-1">
