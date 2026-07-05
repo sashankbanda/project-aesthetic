@@ -3,7 +3,45 @@ import { ImageResponse } from "next/og";
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
+// dot-matrix dumbbell — the app's glyph identity ('1' lit · '2' accent)
+const ART = [
+  "............",
+  "............",
+  ".1........1.",
+  ".11......11.",
+  ".1111111111.",
+  ".11......11.",
+  ".1........1.",
+  "............",
+  "....2222....",
+  "............",
+];
+
 export default function Icon() {
+  const cell = 38;
+  const cols = ART[0].length;
+  const rows = ART.length;
+  const ox = (512 - cols * cell) / 2;
+  const oy = (512 - rows * cell) / 2;
+  const r = cell * 0.36;
+
+  const dots: React.ReactNode[] = [];
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const ch = ART[y][x];
+      const cx = ox + x * cell + cell / 2;
+      const cy = oy + y * cell + cell / 2;
+      if (ch === "1") {
+        dots.push(<circle key={`${x}-${y}`} cx={cx} cy={cy} r={r} fill="#f4f4f2" />);
+      } else if (ch === "2") {
+        dots.push(<circle key={`${x}-${y}`} cx={cx} cy={cy} r={r} fill="#ff4b2f" />);
+      } else {
+        // faint ghost grid — the matrix behind the glyph
+        dots.push(<circle key={`${x}-${y}`} cx={cx} cy={cy} r={r * 0.55} fill="#f4f4f2" opacity={0.07} />);
+      }
+    }
+  }
+
   return new ImageResponse(
     (
       <div
@@ -13,18 +51,12 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#111110",
-          border: "14px solid #ff4b2f",
+          background: "#0d0d0c",
           borderRadius: 110,
         }}
       >
-        {/* dumbbell glyph */}
-        <svg width="300" height="300" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14.4 14.4 9.6 9.6" />
-          <path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z" />
-          <path d="m21.5 21.5-1.4-1.4" />
-          <path d="M3.9 3.9 2.5 2.5" />
-          <path d="M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z" />
+        <svg width="512" height="512" viewBox="0 0 512 512">
+          {dots}
         </svg>
       </div>
     ),
