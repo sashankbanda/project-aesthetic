@@ -23,6 +23,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   trustHost: true,
+  // failed sign-ins return to the app instead of a raw error response
+  pages: { error: "/more" },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
