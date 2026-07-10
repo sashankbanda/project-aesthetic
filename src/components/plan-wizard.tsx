@@ -15,6 +15,7 @@ import { useAuthEnabled } from "./auth-provider";
 import { Btn, Stepper, inputCls } from "./ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { latestMeasurement } from "@/lib/stats";
+import { getThemeMode, setThemeMode, type ThemeMode } from "@/lib/theme";
 import { goalBadgesFor, goalOrderFor, milestoneFor, TEMPLATES } from "@/lib/templates";
 import { disclaimersFor, nutritionFor, resolvePlan } from "@/lib/plan-engine";
 import type {
@@ -72,6 +73,12 @@ const FOCUSES: { id: FocusPreset; label: string; sub: string }[] = [
   { id: "chest-arms", label: "Chest & arms emphasis", sub: "Extra upper-body volume" },
 ];
 
+const THEMES: { id: ThemeMode; label: string; sub: string }[] = [
+  { id: "system", label: "Match my device", sub: "Follows your phone's light/dark setting" },
+  { id: "dark", label: "Dark", sub: "The signature look — dots on near-black" },
+  { id: "light", label: "Light", sub: "Bright, paper-like" },
+];
+
 export default function PlanWizard({
   mode,
   onClose,
@@ -101,14 +108,15 @@ export default function PlanWizard({
   const [daysPerWeek, setDaysPerWeek] = useState<TrainingProfile["daysPerWeek"]>(existing?.daysPerWeek ?? 3);
   const [sessionMin, setSessionMin] = useState<TrainingProfile["sessionMin"]>(existing?.sessionMin ?? 60);
   const [focus, setFocus] = useState<FocusPreset>(existing?.focus ?? "balanced");
+  const [theme, setTheme] = useState<ThemeMode>(() => getThemeMode());
 
   // step flow: onboard gets welcome/name/body first; switch jumps straight to the plan dimensions
   type StepId =
-    | "welcome" | "name" | "age" | "height" | "weight"
+    | "welcome" | "theme" | "name" | "age" | "height" | "weight"
     | "gender" | "goal" | "environment" | "experience" | "schedule" | "focus" | "preview";
   const steps: StepId[] =
     mode === "onboard"
-      ? ["welcome", "name", "age", "height", "weight", "gender", "goal", "environment", "experience", "schedule", "focus", "preview"]
+      ? ["welcome", "theme", "name", "age", "height", "weight", "gender", "goal", "environment", "experience", "schedule", "focus", "preview"]
       : ["goal", "environment", "experience", "schedule", "focus", "preview"];
   const [stepIdx, setStepIdx] = useState(0);
   const step = steps[stepIdx];
@@ -197,6 +205,28 @@ export default function PlanWizard({
               <button onClick={skipAll} className="pressable mx-auto mt-4 text-[13px] font-light text-faint">
                 Just let me explore →
               </button>
+            </StepShell>
+          )}
+
+          {step === "theme" && (
+            <StepShell title="Pick your look" sub="It changes live as you tap — and you can switch anytime in Account & Settings.">
+              <div className="mt-6 grid gap-2.5">
+                {THEMES.map((th) => (
+                  <ChoiceRow
+                    key={th.id}
+                    selected={theme === th.id}
+                    label={th.label}
+                    sub={th.sub}
+                    badge={th.id === "system" ? "Recommended" : undefined}
+                    onClick={() => {
+                      setTheme(th.id);
+                      setThemeMode(th.id); // applies instantly — the whole screen re-themes
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="flex-1" />
+              <NextBtn onClick={next} />
             </StepShell>
           )}
 
