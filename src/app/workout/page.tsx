@@ -9,7 +9,8 @@ import ExerciseMedia from "@/components/exercise-media";
 import HomeAlt from "@/components/home-alt";
 import { Btn, Card, Meter, PageHead, Pill, Stepper } from "@/components/ui";
 import { todayStr, update, useApp } from "@/lib/store";
-import { adviseFor, prFor } from "@/lib/overload";
+import { adviseFor, historyFor, prFor } from "@/lib/overload";
+import { Sparkline } from "@/components/charts";
 import { EXERCISE_MAP, ACHIEVEMENTS } from "@/lib/seed";
 import { evaluateAchievements } from "@/lib/stats";
 import { analyzeSession, fmtDuration, type SessionTimeReport } from "@/lib/session-time";
@@ -144,6 +145,9 @@ function WorkoutInner() {
   const state = useApp();
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
   const [rest, setRest] = useState<RestRequest | null>(null);
+  // accordion: null = auto (first incomplete), -1 = all closed, n = user's pick
+  const [openPick, setOpenPick] = useState<number | null>(null);
+  const [prToast, setPrToast] = useState<{ id: number; name: string; weight: number } | null>(null);
   const [summary, setSummary] = useState<{
     report: SessionTimeReport | null;
     achievements: string[];
@@ -162,6 +166,13 @@ function WorkoutInner() {
   const doneSets =
     session?.logs.reduce((n, l) => n + l.sets.filter((s) => s.done).length, 0) ?? 0;
   const allDone = totalSets > 0 && doneSets === totalSets && !session?.completedAt;
+
+  // auto mode opens the first exercise with unfinished sets
+  const firstIncomplete = day.exercises.findIndex((pe) => {
+    const log = session?.logs.find((l) => l.exerciseId === pe.exerciseId);
+    return (log?.sets.filter((s) => s.done).length ?? 0) < pe.workingSets;
+  });
+  const openIndex = openPick ?? (firstIncomplete === -1 ? null : firstIncomplete);
 
   const startRest = (seconds: number, label: string) =>
     setRest({ id: Date.now(), seconds, label });
@@ -247,7 +258,10 @@ function WorkoutInner() {
         {days.map((d) => (
           <button
             key={d.id}
-            onClick={() => setSelectedDayId(d.id)}
+            onClick={() => {
+              setSelectedDayId(d.id);
+              setOpenPick(null);
+            }}
             className={`pressable shrink-0 rounded-2xl border px-4 py-2.5 text-left text-sm ${
               d.id === day.id
                 ? "border-ink/30 bg-card2 font-medium text-ink"
@@ -315,6 +329,10 @@ function WorkoutInner() {
               index={i}
               day={day}
               session={session}
+              open={openIndex === i}
+              onToggle={() => setOpenPick(openIndex === i ? -1 : i)}
+              onAllDone={() => setOpenPick(null)} // flow: auto-advance to the next unfinished exercise
+              onPr={(name, weight) => setPrToast({ id: Date.now(), name, weight })}
               onSetDone={(restS, name) => startRest(restS, name)}
             />
           ))}
@@ -343,6 +361,8 @@ function WorkoutInner() {
           )}
         </>
       )}
+
+      {prToast && <PrToast key={prToast.id} name={prToast.name} weight={prToast.weight} onDone={() => setPrToast(null)} />}
 
       {/* session options sheet */}
       {sheet && (
@@ -753,24 +773,42 @@ function ExerciseCard({
   index,
   day,
   session,
+  open,
+  onToggle,
+  onAllDone,
+  onPr,
   onSetDone,
 }: {
   planned: PlannedExercise;
   index: number;
   day: WorkoutDay;
   session?: WorkoutSession;
+  open: boolean;
+  onToggle: () => void;
+  onAllDone: () => void;
+  onPr: (name: string, weight: number) => void;
   onSetDone: (restSeconds: number, exerciseName: string) => void;
 }) {
   const state = useApp();
-  const [open, setOpen] = useState(index === 0);
   const [showInfo, setShowInfo] = useState(false);
   const [editingSet, setEditingSet] = useState<number | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mountedRef = useRef(false);
   const ex = EXERCISE_MAP[planned.exerciseId];
   const log = session?.logs.find((l) => l.exerciseId === planned.exerciseId);
   const advice = adviseFor(state, planned, { excludeSessionId: session?.id });
   const pr = prFor(state, planned.exerciseId);
   const doneCount = log?.sets.filter((s) => s.done).length ?? 0;
   const complete = doneCount === planned.workingSets && doneCount > 0;
+
+  // bring the card into view when the accordion opens it (skip initial mount)
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    if (open) cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [open]);
 
   const patchSet = (setIdx: number, patch: Partial<{ weight: number; reps: number; done: boolean; at: string }>) => {
     update((draft) => {
@@ -790,8 +828,14 @@ function ExerciseCard({
     if (willBeDone) {
       haptic();
       unlockAudio(); // user gesture — arms the completion chime for iOS
-      onSetDone(planned.restSeconds, ex?.name ?? "");
       setEditingSet(null);
+      // beat your recorded best → celebrate (peak moments are what people remember)
+      const w = row?.weight ?? 0;
+      if (pr && pr.weight > 0 && w > pr.weight) onPr(ex?.name ?? "", w);
+      if (doneCount + 1 === planned.workingSets) {
+        onAllDone(); // exercise finished — accordion flows to the next one
+      }
+      onSetDone(planned.restSeconds, ex?.name ?? "");
     }
   };
 
@@ -801,9 +845,9 @@ function ExerciseCard({
   const defaultWeight = advice.suggestedWeight ?? 0;
 
   return (
-    <div className={`card mb-3 overflow-hidden transition ${complete ? "border-good/25" : ""}`}>
+    <div ref={cardRef} className={`card mb-3 overflow-hidden transition ${complete ? "border-good/25" : ""}`}>
       {/* head */}
-      <button className="pressable flex w-full items-center gap-3.5 p-4 text-left" onClick={() => setOpen(!open)}>
+      <button className="pressable flex w-full items-center gap-3.5 p-4 text-left" onClick={onToggle}>
         <div
           className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sm font-medium ${
             complete ? "bg-ink text-bg" : "bg-card2 text-dim"
@@ -850,6 +894,7 @@ function ExerciseCard({
           {pr && pr.weight > 0 && (
             <div className="mt-2 flex items-center gap-1.5 text-[11px] text-faint">
               <Trophy size={12} /> PR: {pr.weight} kg × {pr.reps}
+              <HistorySpark exerciseId={planned.exerciseId} />
             </div>
           )}
 
@@ -903,6 +948,9 @@ function ExerciseCard({
                       </div>
                     </div>
                   )}
+                  {editing && (ex.equipment === "Barbell" || ex.equipment === "Smith") && (
+                    <PlateHint weight={weight} />
+                  )}
                 </div>
               );
             })}
@@ -949,6 +997,70 @@ function ExerciseCard({
         </div>
       )}
     </div>
+  );
+}
+
+/** top working weight across the last handful of sessions — progress you can SEE mid-set */
+function HistorySpark({ exerciseId }: { exerciseId: string }) {
+  const state = useApp();
+  const weights = historyFor(state, exerciseId)
+    .slice(0, 6)
+    .reverse()
+    .map((h) => Math.max(0, ...h.log.sets.filter((s) => s.done).map((s) => s.weight)))
+    .filter((w) => w > 0);
+  if (weights.length < 2) return null;
+  return (
+    <span className="ml-1.5 inline-flex items-center gap-1.5">
+      <Sparkline values={weights} color="var(--color-viz2)" />
+      <span>last {weights.length}</span>
+    </span>
+  );
+}
+
+/** what to load per side — barbell math nobody should do between sets */
+function PlateHint({ weight, barKg = 20 }: { weight: number; barKg?: number }) {
+  if (weight < barKg) return null;
+  let side = (weight - barKg) / 2;
+  const plates: number[] = [];
+  for (const p of [25, 20, 15, 10, 5, 2.5, 1.25]) {
+    while (side >= p - 1e-9) {
+      plates.push(p);
+      side -= p;
+    }
+  }
+  const loadable = side <= 1e-9;
+  return (
+    <div className="border-t border-line/40 px-3.5 py-2 text-[11px] text-faint">
+      {weight === barKg
+        ? "Just the bar (20 kg)"
+        : loadable
+          ? `Bar + per side: ${plates.join(" · ")} kg`
+          : `${weight} kg isn't loadable with standard plates — try ${weight - (weight % 2.5)} kg`}
+    </div>
+  );
+}
+
+/** brief top-of-screen celebration when a set beats the recorded PR */
+function PrToast({ name, weight, onDone }: { name: string; weight: number; onDone: () => void }) {
+  useEffect(() => {
+    if (navigator.vibrate) navigator.vibrate([80, 40, 80, 40, 220]);
+    const t = setTimeout(onDone, 2800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return createPortal(
+    <div className="rise-in pointer-events-none fixed inset-x-0 top-[max(env(safe-area-inset-top),16px)] z-[110] flex justify-center px-6">
+      <div className="tile-accent flex items-center gap-3.5 px-5 py-3.5 shadow-2xl">
+        <GlyphMatrix frames={TROPHY_FRAMES} fps={5} cell={3.2} color="#ffffff" />
+        <div>
+          <div className="label-mono text-[9px] text-white/70">New personal record</div>
+          <div className="text-[14px] font-semibold text-white">
+            {name} · {weight} kg
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
