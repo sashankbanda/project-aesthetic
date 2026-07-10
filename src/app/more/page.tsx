@@ -18,6 +18,7 @@ import {
   Map,
   Moon,
   NotebookPen,
+  Sparkles,
   SunMoon,
   Trophy,
   Upload,
@@ -59,6 +60,12 @@ function MoreInner() {
               ? `${TEMPLATES[training.goal].label} · ${training.daysPerWeek} days · history is kept when you switch`
               : "Rebuild your weekly plan around a new goal"
           }
+        />
+        <ListRow
+          href="/coach"
+          icon={<Sparkles size={17} />}
+          title="AI Coach"
+          sub="Weekly check-ins from your own training data"
         />
         <ListRow
           href="/roadmap"

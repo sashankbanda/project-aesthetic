@@ -14,6 +14,7 @@ import {
   Moon,
   NotebookPen,
   Ruler,
+  Sparkles,
   Trophy,
   Upload,
 } from "lucide-react";
@@ -35,6 +36,7 @@ const NAV = [
   { href: "/workout", icon: Dumbbell, label: "Train" },
   { href: "/nutrition", icon: Flame, label: "Fuel" },
   { href: "/body", icon: Ruler, label: "My Body" },
+  { href: "/coach", icon: Sparkles, label: "AI Coach" },
   { href: "/analytics", icon: ChartNoAxesColumn, label: "Analytics" },
   { href: "/photos", icon: Camera, label: "Photos" },
   { href: "/roadmap", icon: Map, label: "Roadmap" },
