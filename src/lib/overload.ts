@@ -88,10 +88,13 @@ export function adviseFor(
 
   if (allAtMax) {
     if (ex?.isBodyweight && weight === 0) {
+      const next = ex.progressTo ? EXERCISE_MAP[ex.progressTo] : undefined;
       return {
         kind: "increase",
-        message: `Owned ${planned.repsMax}+ reps every set — add weight (belt/dumbbell) or try a harder variation.`,
-        suggestedWeight: inc,
+        message: next
+          ? `Owned ${planned.repsMax}+ reps every set — you've outgrown this. Move up to ${next.name}.`
+          : `Owned ${planned.repsMax}+ reps every set — add weight (belt/backpack) or slow the tempo.`,
+        suggestedWeight: next ? 0 : inc,
       };
     }
     const next = +(weight + inc).toFixed(1);

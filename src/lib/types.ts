@@ -4,6 +4,68 @@
 // localStorage → cloud DB later without touching the UI.
 // ============================================================
 
+// ---------- multi-profile plan system ----------
+
+export type Gender = "male" | "female" | "unspecified";
+export type AgeGroup = "13-17" | "18-29" | "30-44" | "45-59" | "60+";
+export type Environment = "gym" | "home-gym" | "home-minimal" | "bodyweight";
+export type Goal =
+  | "fat-loss"
+  | "strength"
+  | "bodybuilding"
+  | "lean-aesthetic"
+  | "calisthenics"
+  | "general-fitness"
+  | "endurance"
+  | "recomp"
+  | "mobility"
+  | "starter";
+export type Experience = "beginner" | "intermediate" | "advanced";
+export type FocusPreset = "balanced" | "glutes-legs" | "chest-arms";
+
+/** The 7 dimensions that drive plan generation — all tap-selected, no free text. */
+export interface TrainingProfile {
+  gender: Gender;
+  ageGroup: AgeGroup;
+  environment: Environment;
+  goal: Goal;
+  experience: Experience;
+  daysPerWeek: 2 | 3 | 4 | 5 | 6;
+  sessionMin: 30 | 60 | 90;
+  /** optional emphasis — offered to everyone, never defaulted by gender */
+  focus?: FocusPreset;
+  /** yyyy-mm-dd the current plan started — drives the deload cadence */
+  planStartedAt?: string;
+  /** deload every N weeks, resolved from the goal template */
+  deloadWeeks?: number;
+}
+
+/** Movement pattern a template slot asks for; the resolver fills it from the library. */
+export type MovementPattern =
+  | "h-push"
+  | "v-push"
+  | "h-pull"
+  | "v-pull"
+  | "squat"
+  | "hinge"
+  | "lunge"
+  | "core"
+  | "iso-chest"
+  | "iso-side-delt"
+  | "iso-rear-delt"
+  | "iso-biceps"
+  | "iso-triceps"
+  | "iso-quads"
+  | "iso-hams"
+  | "iso-glutes"
+  | "iso-calves"
+  | "balance"
+  | "cardio"
+  | "mobility";
+
+/** Joint/impact cautions — used to filter exercises for older age groups. */
+export type Caution = "knee" | "shoulder" | "spine" | "wrist" | "high-impact" | "overhead";
+
 export type MuscleGroup =
   | "Upper Chest"
   | "Mid Chest"
@@ -28,7 +90,16 @@ export interface Exercise {
   name: string;
   primary: MuscleGroup;
   secondary: MuscleGroup[];
-  equipment: "Barbell" | "Dumbbell" | "Cable" | "Machine" | "Bodyweight" | "Smith";
+  equipment:
+    | "Barbell"
+    | "Dumbbell"
+    | "Cable"
+    | "Machine"
+    | "Bodyweight"
+    | "Smith"
+    | "Band"
+    | "Kettlebell"
+    | "Pull-up Bar";
   /** YouTube search URL — swap for real embeds later */
   videoUrl: string;
   cues: string[];
@@ -38,6 +109,16 @@ export interface Exercise {
   /** weight step used by the overload engine (2.5 kg barbell, 2 kg DBs…) */
   incrementKg: number;
   isBodyweight?: boolean;
+  /** movement pattern this exercise fills in plan templates */
+  pattern?: MovementPattern;
+  /** 1 = beginner-safe · 2 = intermediate · 3 = advanced */
+  difficulty?: 1 | 2 | 3;
+  /** id of the next-harder variation (bodyweight progression chains) */
+  progressTo?: string;
+  /** id of the easier variation to regress to */
+  regressTo?: string;
+  /** joints/impact this exercise stresses — filtered out for affected age groups */
+  avoidIf?: Caution[];
   /** bodyweight / household substitute hitting the same primary muscle — for no-gym days */
   home?: {
     name: string;
@@ -125,6 +206,8 @@ export interface Profile {
   stepsGoal: number;
   sleepGoalH: number;
   nextMilestone: string;
+  /** multi-profile plan dimensions — absent for pre-existing users until they re-run the wizard */
+  training?: TrainingProfile;
 }
 
 export interface FoodEntry {

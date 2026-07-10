@@ -10,6 +10,7 @@ import { weeklyCompletion, workoutStreak } from "@/lib/overload";
 import { latestMeasurement, proteinForDate } from "@/lib/stats";
 import {
   ArrowRight,
+  Battery,
   Check,
   CheckCheck,
   Droplets,
@@ -141,6 +142,8 @@ function HomeInner() {
         />
       </div>
 
+      <DeloadBanner />
+
       {/* week + milestone */}
       <Card className="mt-4 !p-4">
         <div className="flex items-center justify-between">
@@ -182,6 +185,26 @@ function HomeInner() {
         </div>
       </Card>
     </>
+  );
+}
+
+/** Every Nth week per the plan's template: back off so the next block hits harder. */
+function DeloadBanner() {
+  const state = useApp();
+  const t = state.profile.training;
+  if (!t?.planStartedAt || !t.deloadWeeks) return null;
+  const weeks = Math.floor(
+    (new Date(todayStr()).getTime() - new Date(t.planStartedAt).getTime()) / (7 * 86400000),
+  );
+  if (weeks <= 0 || (weeks + 1) % t.deloadWeeks !== 0) return null;
+  return (
+    <Card className="mt-4 flex items-center gap-3 !p-4 border-warn/25">
+      <Battery size={17} className="shrink-0 text-warn" />
+      <div className="text-[13px] leading-snug">
+        <span className="font-semibold">Deload week.</span>{" "}
+        <span className="text-dim">Halve your working sets, keep every rep crisp — growth happens in the recovery.</span>
+      </div>
+    </Card>
   );
 }
 

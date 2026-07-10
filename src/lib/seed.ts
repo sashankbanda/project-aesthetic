@@ -12,10 +12,12 @@ import type {
   WorkoutDay,
 } from "./types";
 
+import { LIBRARY_EXERCISES } from "./library";
+
 const yt = (q: string) =>
   `https://www.youtube.com/results?search_query=${encodeURIComponent(q + " proper form")}`;
 
-export const EXERCISES: Exercise[] = [
+const CURATED_EXERCISES: Exercise[] = [
   // ---------- CHEST (upper-chest priority) ----------
   {
     id: "incline-db-press",
@@ -548,6 +550,47 @@ export const EXERCISES: Exercise[] = [
       how: "Already home-friendly. The harder version: squeeze glutes and fists, pull the elbows toward the toes without anything moving. 20 seconds done right should shake.",
     },
   },
+];
+
+// ------------------------------------------------------------
+// Plan-engine metadata for the curated exercises above — kept as
+// a map so the entries themselves stay untouched.
+// ------------------------------------------------------------
+const CURATED_TAGS: Record<string, Partial<Exercise>> = {
+  "incline-db-press": { pattern: "h-push", difficulty: 1 },
+  "incline-bb-press": { pattern: "h-push", difficulty: 2 },
+  "flat-bb-bench": { pattern: "h-push", difficulty: 2 },
+  "cable-fly-low-high": { pattern: "iso-chest", difficulty: 1 },
+  dips: { pattern: "h-push", difficulty: 2, regressTo: "decline-push-up" },
+  "db-lateral-raise": { pattern: "iso-side-delt", difficulty: 1 },
+  "cable-lateral-raise": { pattern: "iso-side-delt", difficulty: 2 },
+  "db-shoulder-press": { pattern: "v-push", difficulty: 1, avoidIf: ["overhead"] },
+  "reverse-pec-deck": { pattern: "iso-rear-delt", difficulty: 1 },
+  "face-pull": { pattern: "iso-rear-delt", difficulty: 1 },
+  pullup: { pattern: "v-pull", difficulty: 2, equipment: "Pull-up Bar", regressTo: "negative-pull-up", progressTo: "archer-pull-up" },
+  "lat-pulldown": { pattern: "v-pull", difficulty: 1 },
+  "seated-cable-row": { pattern: "h-pull", difficulty: 1 },
+  "single-arm-db-row": { pattern: "h-pull", difficulty: 1 },
+  "straight-arm-pulldown": { pattern: "v-pull", difficulty: 1 },
+  "ez-bar-curl": { pattern: "iso-biceps", difficulty: 1 },
+  "incline-db-curl": { pattern: "iso-biceps", difficulty: 2 },
+  "hammer-curl": { pattern: "iso-biceps", difficulty: 1 },
+  "triceps-pushdown": { pattern: "iso-triceps", difficulty: 1 },
+  "overhead-triceps-ext": { pattern: "iso-triceps", difficulty: 1, avoidIf: ["overhead"] },
+  squat: { pattern: "squat", difficulty: 2, avoidIf: ["spine"] },
+  "leg-press": { pattern: "squat", difficulty: 1 },
+  rdl: { pattern: "hinge", difficulty: 2, avoidIf: ["spine"] },
+  "leg-curl": { pattern: "iso-hams", difficulty: 1 },
+  "leg-extension": { pattern: "iso-quads", difficulty: 1 },
+  "calf-raise": { pattern: "iso-calves", difficulty: 1 },
+  "hanging-knee-raise": { pattern: "core", difficulty: 2, equipment: "Pull-up Bar", regressTo: "lying-leg-raise" },
+  "cable-crunch": { pattern: "core", difficulty: 1 },
+  plank: { pattern: "core", difficulty: 1 },
+};
+
+export const EXERCISES: Exercise[] = [
+  ...CURATED_EXERCISES.map((e) => ({ ...e, ...CURATED_TAGS[e.id] })),
+  ...LIBRARY_EXERCISES,
 ];
 
 // ------------------------------------------------------------

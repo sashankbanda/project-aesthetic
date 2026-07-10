@@ -1,7 +1,9 @@
 "use client";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Mounted from "@/components/mounted";
 import AccountCard from "@/components/account-card";
+import PlanWizard from "@/components/plan-wizard";
+import { TEMPLATES } from "@/lib/templates";
 import { Card, PageHead, Segmented } from "@/components/ui";
 import { ListRow } from "@/components/ui";
 import { doExport, doImport } from "@/components/shell";
@@ -11,6 +13,7 @@ import { getThemeMode, setThemeMode, subscribeTheme, type ThemeMode } from "@/li
 import {
   BookOpen,
   Download,
+  Dumbbell,
   Heart,
   Map,
   Moon,
@@ -30,11 +33,14 @@ export default function MorePage() {
 
 function MoreInner() {
   const state = useApp();
+  const [planWizard, setPlanWizard] = useState(false);
   const unlocked = Object.keys(state.unlocked).length;
   const journalCount = state.journal.length;
+  const training = state.profile.training;
 
   return (
     <>
+      {planWizard && <PlanWizard mode="switch" onClose={() => setPlanWizard(false)} />}
       <PageHead title="More" sub="Everything else — journals, badges, plans and backups." />
 
       <div className="mb-4">
@@ -44,6 +50,16 @@ function MoreInner() {
       <ThemeCard />
 
       <Card className="!p-0 divide-y divide-line/40 overflow-hidden">
+        <ListRow
+          onClick={() => setPlanWizard(true)}
+          icon={<Dumbbell size={17} />}
+          title="Training Plan"
+          sub={
+            training
+              ? `${TEMPLATES[training.goal].label} · ${training.daysPerWeek} days · history is kept when you switch`
+              : "Rebuild your weekly plan around a new goal"
+          }
+        />
         <ListRow
           href="/roadmap"
           icon={<Map size={17} />}

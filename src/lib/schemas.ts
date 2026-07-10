@@ -8,6 +8,30 @@ import { z } from "zod";
 const dateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "expected yyyy-mm-dd");
 const monthStr = z.string().regex(/^\d{4}-\d{2}$/, "expected yyyy-mm");
 
+export const TrainingProfileSchema = z.object({
+  gender: z.enum(["male", "female", "unspecified"]),
+  ageGroup: z.enum(["13-17", "18-29", "30-44", "45-59", "60+"]),
+  environment: z.enum(["gym", "home-gym", "home-minimal", "bodyweight"]),
+  goal: z.enum([
+    "fat-loss",
+    "strength",
+    "bodybuilding",
+    "lean-aesthetic",
+    "calisthenics",
+    "general-fitness",
+    "endurance",
+    "recomp",
+    "mobility",
+    "starter",
+  ]),
+  experience: z.enum(["beginner", "intermediate", "advanced"]),
+  daysPerWeek: z.union([z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)]),
+  sessionMin: z.union([z.literal(30), z.literal(60), z.literal(90)]),
+  focus: z.enum(["balanced", "glutes-legs", "chest-arms"]).optional(),
+  planStartedAt: dateStr.optional(),
+  deloadWeeks: z.number().int().min(2).max(12).optional(),
+});
+
 export const ProfileSchema = z.object({
   name: z.string().min(1).max(60),
   heightCm: z.number().positive().max(300),
@@ -20,6 +44,7 @@ export const ProfileSchema = z.object({
   stepsGoal: z.number().int().positive().max(200000),
   sleepGoalH: z.number().positive().max(24),
   nextMilestone: z.string().max(200),
+  training: TrainingProfileSchema.optional(),
 });
 
 export const SetLogSchema = z.object({
