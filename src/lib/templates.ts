@@ -4,7 +4,7 @@
 // Numbers follow docs/programming-principles.md (ACSM/NSCA,
 // Schoenfeld volume & rest evidence, WHO age guidance).
 // ============================================================
-import type { Environment, Experience, Goal, MovementPattern } from "./types";
+import type { Environment, Experience, Gender, Goal, MovementPattern } from "./types";
 
 export type DayKind =
   | "full"
@@ -297,3 +297,22 @@ export const GOAL_ORDER: Goal[] = [
   "endurance",
   "mobility",
 ];
+
+/**
+ * Gender tunes ORDER and suggestion badges only — every goal stays
+ * available to everyone, and the programming behind each goal is
+ * identical (see docs/programming-principles.md §8).
+ */
+export function goalOrderFor(gender: Gender): Goal[] {
+  if (gender === "male")
+    return ["starter", "lean-aesthetic", "bodybuilding", "strength", "fat-loss", "recomp", "calisthenics", "general-fitness", "endurance", "mobility"];
+  if (gender === "female")
+    return ["starter", "recomp", "fat-loss", "general-fitness", "bodybuilding", "lean-aesthetic", "strength", "calisthenics", "endurance", "mobility"];
+  return GOAL_ORDER;
+}
+
+export function goalBadgesFor(gender: Gender): Partial<Record<Goal, string>> {
+  if (gender === "male") return { starter: "Recommended", "lean-aesthetic": "Popular", bodybuilding: "Popular" };
+  if (gender === "female") return { starter: "Recommended", recomp: "Popular", "fat-loss": "Popular" };
+  return { starter: "Recommended" };
+}

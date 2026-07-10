@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ChevronRight, Minus, Plus } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import DotNumber from "./dot-number";
 
 export type TileTone = "dark" | "light" | "accent";
@@ -247,7 +247,8 @@ export function Segmented<T extends string>({
 
 /**
  * Keyboard-free number stepper — the gym-glove-friendly way to
- * adjust values. Hold-to-repeat not needed; steps are chunky.
+ * adjust values. Tap for one step; press and hold to repeat,
+ * accelerating after a second (nobody taps 50 times to reach 166 cm).
  */
 export function Stepper({
   value,
@@ -264,27 +265,68 @@ export function Stepper({
   format?: (v: number) => string;
   suffix?: string;
 }) {
-  const dec = () => onChange(Math.max(min, +(value - step).toFixed(2)));
-  const inc = () => onChange(+(value + step).toFixed(2));
+  const stopRef = useRef<() => void>(() => {});
+  useEffect(() => () => stopRef.current(), []);
+
+  // the value is captured at press time and self-accumulates each tick,
+  // so a long hold never reads stale state
+  const begin = (dir: 1 | -1) => {
+    stopRef.current();
+    let v = value;
+    const tick = () => {
+      v = Math.max(min, +(v + dir * step).toFixed(2));
+      onChange(v);
+    };
+    tick(); // the tap itself
+    let ticks = 0;
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const delay = setTimeout(() => {
+      interval = setInterval(() => {
+        tick();
+        if (++ticks === 12) {
+          clearInterval(interval);
+          interval = setInterval(tick, 35); // accelerate for long holds
+        }
+      }, 90);
+    }, 400);
+    stopRef.current = () => {
+      clearTimeout(delay);
+      if (interval) clearInterval(interval);
+    };
+  };
+  const stop = () => stopRef.current();
+  const noMenu = (e: React.MouseEvent) => e.preventDefault(); // long-press menu would break the hold
+
+  const btnCls =
+    "pressable grid h-11 w-11 touch-none select-none place-items-center rounded-xl border border-line bg-elev text-dim";
+
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center justify-center gap-2">
       <button
-        onClick={dec}
-        className="pressable grid h-9 w-9 place-items-center rounded-xl border border-line bg-elev text-dim"
+        onPointerDown={() => begin(-1)}
+        onPointerUp={stop}
+        onPointerLeave={stop}
+        onPointerCancel={stop}
+        onContextMenu={noMenu}
+        className={btnCls}
         aria-label="decrease"
       >
-        <Minus size={15} />
+        <Minus size={16} />
       </button>
-      <div className="min-w-[64px] text-center text-[15px] font-bold tabular-nums">
+      <div className="min-w-[72px] text-center text-[15px] font-bold tabular-nums">
         {format(value)}
         {suffix && <span className="ml-0.5 text-[11px] font-medium text-faint">{suffix}</span>}
       </div>
       <button
-        onClick={inc}
-        className="pressable grid h-9 w-9 place-items-center rounded-xl border border-line bg-elev text-dim"
+        onPointerDown={() => begin(1)}
+        onPointerUp={stop}
+        onPointerLeave={stop}
+        onPointerCancel={stop}
+        onContextMenu={noMenu}
+        className={btnCls}
         aria-label="increase"
       >
-        <Plus size={15} />
+        <Plus size={16} />
       </button>
     </div>
   );

@@ -15,7 +15,7 @@ import { useAuthEnabled } from "./auth-provider";
 import { Btn, Stepper, inputCls } from "./ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { latestMeasurement } from "@/lib/stats";
-import { GOAL_ORDER, TEMPLATES } from "@/lib/templates";
+import { goalBadgesFor, goalOrderFor, TEMPLATES } from "@/lib/templates";
 import { disclaimersFor, nutritionFor, resolvePlan } from "@/lib/plan-engine";
 import type {
   AgeGroup,
@@ -217,39 +217,35 @@ export default function PlanWizard({
 
           {step === "age" && (
             <StepShell title="How old are you?" sub="Your plan adapts — teens train technique-first, 60+ adds balance work.">
-              <BigNumber value={age} unit="years" />
-              <Stepper value={age} min={13} step={1} onChange={(v) => setAge(Math.min(90, v))} />
-              <div className="flex-1" />
+              <NumberField value={age} min={13} max={90} step={1} unit="years" onChange={setAge} />
               <NextBtn onClick={next} />
             </StepShell>
           )}
 
           {step === "height" && (
             <StepShell title="Your height?" sub="Powers BMI and FFMI.">
-              <BigNumber value={heightCm} unit="cm" />
-              <Stepper value={heightCm} min={120} step={1} onChange={(v) => setHeightCm(Math.min(230, v))} />
-              <div className="flex-1" />
+              <NumberField value={heightCm} min={120} max={230} step={1} unit="cm" onChange={setHeightCm} />
               <NextBtn onClick={next} />
             </StepShell>
           )}
 
           {step === "weight" && (
             <StepShell title="Current weight?" sub="You can always update this later.">
-              <BigNumber value={weightKg} unit="kg" />
-              <Stepper
+              <NumberField
                 value={weightKg}
                 min={30}
+                max={250}
                 step={0.5}
-                onChange={(v) => setWeightKg(Math.min(250, v))}
+                unit="kg"
                 format={(v) => v.toFixed(1)}
+                onChange={setWeightKg}
               />
-              <div className="flex-1" />
               <NextBtn onClick={next} />
             </StepShell>
           )}
 
           {step === "gender" && (
-            <StepShell title="How do you identify?" sub="Programming is the same for everyone — this only tunes optional emphasis suggestions.">
+            <StepShell title="How do you identify?" sub="Programming is the same for everyone — this reorders goal suggestions, it never limits your options.">
               <div className="mt-6 grid gap-2.5">
                 {GENDERS.map((g) => (
                   <ChoiceRow key={g.id} selected={gender === g.id} label={g.label} sub={g.sub} onClick={() => setGender(g.id)} />
@@ -263,15 +259,16 @@ export default function PlanWizard({
           {step === "goal" && (
             <StepShell title="What's the goal?" sub="This picks your entire programming style — rep ranges, rest, split, cardio.">
               <div className="mt-5 grid gap-2">
-                {GOAL_ORDER.map((id) => {
+                {goalOrderFor(gender).map((id) => {
                   const t = TEMPLATES[id];
+                  const badges = goalBadgesFor(gender);
                   return (
                     <ChoiceRow
                       key={id}
                       selected={goal === id}
                       label={t.label}
                       sub={t.blurb}
-                      badge={mode === "onboard" && id === "starter" ? "Recommended" : undefined}
+                      badge={mode === "switch" && id === "starter" ? undefined : badges[id]}
                       onClick={() => setGoal(id)}
                     />
                   );
@@ -345,7 +342,18 @@ export default function PlanWizard({
             <StepShell title="Any emphasis?" sub="Optional — adds extra volume where you want it. Balanced is a great default.">
               <div className="mt-6 grid gap-2.5">
                 {FOCUSES.map((f) => (
-                  <ChoiceRow key={f.id} selected={focus === f.id} label={f.label} sub={f.sub} onClick={() => setFocus(f.id)} />
+                  <ChoiceRow
+                    key={f.id}
+                    selected={focus === f.id}
+                    label={f.label}
+                    sub={f.sub}
+                    badge={
+                      (gender === "female" && f.id === "glutes-legs") || (gender === "male" && f.id === "chest-arms")
+                        ? "Popular"
+                        : undefined
+                    }
+                    onClick={() => setFocus(f.id)}
+                  />
                 ))}
               </div>
               <div className="flex-1" />
@@ -547,13 +555,42 @@ function ChoiceRow({
   );
 }
 
-function BigNumber({ value, unit }: { value: number; unit: string }) {
+/** number entry: dot-matrix readout, slider for the big jumps, hold-to-repeat stepper for fine-tuning */
+function NumberField({
+  value,
+  min,
+  max,
+  step,
+  unit,
+  format,
+  onChange,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
+  format?: (v: number) => string;
+  onChange: (v: number) => void;
+}) {
+  const clamp = (v: number) => Math.min(max, Math.max(min, v));
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 py-8">
+    <div className="flex flex-1 flex-col items-center justify-center gap-8 py-8">
       <div className="flex items-end gap-2">
         <DotNumber value={Number.isInteger(value) ? value : value.toFixed(1)} cell={10} />
         <span className="label-mono pb-1 text-faint">{unit}</span>
       </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(clamp(parseFloat(e.target.value)))}
+        aria-label={unit}
+        className="w-full"
+      />
+      <Stepper value={value} min={min} step={step} format={format} onChange={(v) => onChange(clamp(v))} />
     </div>
   );
 }
