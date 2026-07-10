@@ -332,6 +332,38 @@ export function Stepper({
   );
 }
 
+/** iOS-style switch — the app's one toggle treatment (Law of Similarity). */
+export function Switch({
+  checked,
+  onChange,
+  disabled,
+  label,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={() => onChange(!checked)}
+      disabled={disabled}
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      className={`pressable relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-40 ${
+        checked ? "bg-accent" : "border border-line bg-card2"
+      }`}
+    >
+      <span
+        className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-[left] ${
+          checked ? "left-6" : "left-1"
+        }`}
+      />
+    </button>
+  );
+}
+
 /** iOS settings-style list row. */
 export function ListRow({
   icon,

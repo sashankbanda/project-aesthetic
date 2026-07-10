@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { BellRing } from "lucide-react";
 import { useAuthEnabled } from "./auth-provider";
-import { Card } from "./ui";
+import { Card, Switch } from "./ui";
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -95,20 +95,12 @@ function RemindersInner() {
           {error ?? "One evening nudge on training days you haven't logged."}
         </div>
       </div>
-      <button
-        onClick={enabled ? disable : enable}
+      <Switch
+        checked={!!enabled}
         disabled={busy || enabled === null}
-        aria-label={enabled ? "disable reminders" : "enable reminders"}
-        className={`pressable relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-40 ${
-          enabled ? "bg-accent" : "bg-card2 border border-line"
-        }`}
-      >
-        <span
-          className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-[left] ${
-            enabled ? "left-6" : "left-1"
-          }`}
-        />
-      </button>
+        label="workout reminders"
+        onChange={(v) => (v ? enable() : disable())}
+      />
     </Card>
   );
 }

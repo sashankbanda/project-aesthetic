@@ -11,6 +11,10 @@ import { Btn, Card, Meter, PageHead, Pill, Stepper } from "@/components/ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { adviseFor, historyFor, prFor } from "@/lib/overload";
 import { Sparkline } from "@/components/charts";
+import { chime, haptic, unlockAudio } from "@/lib/fx";
+import { ensureSession, sessionId } from "@/lib/workout-session";
+import GymMode from "@/components/gym-mode";
+import { useGymPrefs } from "@/lib/gym-prefs";
 import { EXERCISE_MAP, ACHIEVEMENTS } from "@/lib/seed";
 import { evaluateAchievements } from "@/lib/stats";
 import { analyzeSession, fmtDuration, type SessionTimeReport } from "@/lib/session-time";
@@ -23,6 +27,7 @@ import {
   Clock,
   Info,
   LogIn,
+  Maximize2,
   MoreHorizontal,
   Pause,
   Play,
@@ -39,86 +44,12 @@ import {
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const haptic = (pattern: number | number[] = 30) => {
-  if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(pattern);
-};
-
-// ---------- completion sound (Web Audio — works on iPhone too) ----------
-let audioCtx: AudioContext | null = null;
-
-/** Must be called from a user gesture (ticking a set) to unlock iOS audio. */
-function unlockAudio() {
-  try {
-    audioCtx ??= new AudioContext();
-    if (audioCtx.state === "suspended") void audioCtx.resume();
-  } catch {
-    /* no audio available — vibration still fires */
-  }
-}
-
-/** Two-tone "rest over" chime. */
-function chime() {
-  if (!audioCtx || audioCtx.state !== "running") return;
-  const t0 = audioCtx.currentTime;
-  const notes: [number, number][] = [
-    [880, 0], // A5
-    [1174.66, 0.18], // D6
-  ];
-  for (const [freq, dt] of notes) {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.0001, t0 + dt);
-    gain.gain.exponentialRampToValueAtTime(0.35, t0 + dt + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dt + 0.55);
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start(t0 + dt);
-    osc.stop(t0 + dt + 0.6);
-  }
-}
-
 export default function WorkoutPage() {
   return (
     <Mounted>
       <WorkoutInner />
     </Mounted>
   );
-}
-
-function sessionId(date: string, dayId: string) {
-  return `${date}_${dayId}`;
-}
-
-/**
- * Get or lazily create today's session — sets come PRE-FILLED from
- * the overload engine (weight) and last session (reps), so logging
- * a set is a single tap.
- */
-function ensureSession(draft: AppState, day: WorkoutDay): WorkoutSession {
-  const date = todayStr();
-  const id = sessionId(date, day.id);
-  let session = draft.sessions.find((s) => s.id === id);
-  if (!session) {
-    session = {
-      id,
-      date,
-      dayId: day.id,
-      logs: day.exercises.map((pe) => {
-        const advice = adviseFor(draft, pe);
-        return {
-          exerciseId: pe.exerciseId,
-          sets: Array.from({ length: pe.workingSets }, () => ({
-            weight: advice.suggestedWeight ?? 0,
-            reps: pe.repsMin,
-            done: false,
-          })),
-        };
-      }),
-    };
-    draft.sessions.push(session);
-  }
-  return session;
 }
 
 /** Rest request — the pill component owns the actual countdown. */
@@ -148,6 +79,8 @@ function WorkoutInner() {
   // accordion: null = auto (first incomplete), -1 = all closed, n = user's pick
   const [openPick, setOpenPick] = useState<number | null>(null);
   const [prToast, setPrToast] = useState<{ id: number; name: string; weight: number } | null>(null);
+  const gymPrefs = useGymPrefs();
+  const [gym, setGym] = useState(false);
   const [summary, setSummary] = useState<{
     report: SessionTimeReport | null;
     achievements: string[];
@@ -309,6 +242,18 @@ function WorkoutInner() {
               <div className="text-sm font-bold tabular-nums">
                 {doneSets}<span className="text-faint">/{totalSets}</span>
               </div>
+              {gymPrefs.enabled && !session?.completedAt && (
+                <button
+                  onClick={() => {
+                    unlockAudio(); // user gesture — arms voice/chime for iOS
+                    setGym(true);
+                  }}
+                  aria-label="Enter gym mode"
+                  className="pressable grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-accent/40 bg-accent/10 text-accent"
+                >
+                  <Maximize2 size={15} />
+                </button>
+              )}
               {session && (
                 <button
                   onClick={() => setSheet(true)}
@@ -361,6 +306,8 @@ function WorkoutInner() {
           )}
         </>
       )}
+
+      {gym && !day.isRest && <GymMode day={day} onExit={() => setGym(false)} />}
 
       {prToast && <PrToast key={prToast.id} name={prToast.name} weight={prToast.weight} onDone={() => setPrToast(null)} />}
 
@@ -932,9 +879,10 @@ function ExerciseCard({
                     </button>
                   </div>
                   {editing && (
-                    <div className="flex items-center justify-around gap-3 border-t border-line/40 px-3.5 py-3">
-                      <div>
-                        <div className="mb-1 text-center text-[10px] font-bold uppercase tracking-wide text-faint">Weight</div>
+                    // stacked rows — side-by-side steppers overflow narrow phones
+                    <div className="grid gap-2.5 border-t border-line/40 px-3.5 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wide text-faint">Weight</div>
                         <Stepper
                           value={weight}
                           step={ex.incrementKg || 2.5}
@@ -942,8 +890,8 @@ function ExerciseCard({
                           suffix="kg"
                         />
                       </div>
-                      <div>
-                        <div className="mb-1 text-center text-[10px] font-bold uppercase tracking-wide text-faint">Reps</div>
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wide text-faint">Reps</div>
                         <Stepper value={reps} step={1} onChange={(v) => patchSet(si, { reps: v })} />
                       </div>
                     </div>
