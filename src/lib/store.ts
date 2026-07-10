@@ -20,6 +20,8 @@ function load(): AppState {
   try {
     const raw = window.localStorage.getItem(KEY);
     cache = raw ? (JSON.parse(raw) as AppState) : createInitialState();
+    // fields added after a user's first install default in here
+    if (!Array.isArray(cache.activities)) cache.activities = [];
   } catch {
     cache = createInitialState();
   }

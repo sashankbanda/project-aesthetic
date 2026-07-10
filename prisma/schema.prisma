@@ -35,6 +35,7 @@ model User {
   photoMeta       PhotoMeta[]
   achievements    UnlockedAchievement[]
   pushSubs        PushSubscription[]
+  activities      ActivityEntry[]
 }
 
 model Account {
@@ -74,6 +75,8 @@ model Profile {
   nextMilestone    String
   /// the weekly workout plan (WorkoutDay[]) — user-customizable later
   plan             Json
+  /// TrainingProfile (plan wizard dimensions) — syncs across devices
+  training         Json?
   /// last-write-wins timestamp for whole-state sync
   stateModifiedAt  DateTime @default(now())
 
@@ -185,16 +188,34 @@ model PhotoMeta {
 
 /// Web-push endpoints for workout reminders — one row per device.
 model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  userId       String
+  endpoint     String   @unique
+  p256dh       String
+  auth         String
+  /// preferred reminder hour in IST (0–23)
+  reminderHour Int      @default(18)
+  createdAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+/// Self-logged activities (own exercises timed with the stopwatch).
+model ActivityEntry {
+  id      String @id @default(cuid())
+  userId  String
+  localId String
+  date    String
+  name    String
+  seconds Int
+  at      String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, localId])
+  @@index([userId, date])
 }
 
 model UnlockedAchievement {

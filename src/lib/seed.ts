@@ -794,6 +794,7 @@ export function createInitialState(): AppState {
     journal: [],
     photos: [],
     roadmap: DEFAULT_ROADMAP,
+    activities: [],
     unlocked: {},
   };
 }

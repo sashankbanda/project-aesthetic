@@ -244,6 +244,17 @@ export interface PhotoSet {
   capturedAt?: string;
 }
 
+/** self-logged extra work — stretching, planks, hangs… timed with the stopwatch */
+export interface ActivityEntry {
+  id: string;
+  /** yyyy-mm-dd */
+  date: string;
+  name: string;
+  seconds: number;
+  /** ISO timestamp of when it was logged */
+  at: string;
+}
+
 export interface RoadmapGoal {
   id: string;
   /** yyyy-mm */
@@ -274,6 +285,8 @@ export interface AppState {
   journal: JournalEntry[];
   photos: PhotoSet[];
   roadmap: RoadmapGoal[];
+  /** self-logged activities (own exercises with stopwatch times) */
+  activities: ActivityEntry[];
   /** achievementId → ISO date unlocked */
   unlocked: Record<string, string>;
 }

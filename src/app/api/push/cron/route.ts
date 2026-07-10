@@ -13,9 +13,9 @@ export const maxDuration = 60;
 // the app's home timezone — reminders fire relative to IST days
 const TZ_OFFSET_MIN = 330; // UTC+5:30
 
-function istToday(): { date: string; weekday: number } {
+function istToday(): { date: string; weekday: number; hour: number } {
   const now = new Date(Date.now() + TZ_OFFSET_MIN * 60_000);
-  return { date: now.toISOString().slice(0, 10), weekday: now.getUTCDay() };
+  return { date: now.toISOString().slice(0, 10), weekday: now.getUTCDay(), hour: now.getUTCHours() };
 }
 
 interface PlanDayLite {
@@ -36,8 +36,11 @@ export async function GET(request: Request) {
   if (!pub || !priv) return NextResponse.json({ error: "vapid not configured" }, { status: 503 });
   webpush.setVapidDetails("mailto:banda.s@gozeal.com", pub, priv);
 
-  const { date, weekday } = istToday();
-  const subs = await prisma.pushSubscription.findMany();
+  // per-user times: only devices whose preferred hour matches this run.
+  // Trigger this endpoint hourly (cron-job.org free tier) for full coverage;
+  // Vercel's daily cron alone covers the 18:00 IST default.
+  const { date, weekday, hour } = istToday();
+  const subs = await prisma.pushSubscription.findMany({ where: { reminderHour: hour } });
   let sent = 0;
   let cleaned = 0;
 

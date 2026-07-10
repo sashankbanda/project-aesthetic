@@ -67,6 +67,7 @@ function toSyncPayload(state: AppState): SyncState {
       stepsGoal: state.profile.stepsGoal,
       sleepGoalH: state.profile.sleepGoalH,
       nextMilestone: state.profile.nextMilestone,
+      training: state.profile.training,
     },
     plan: state.plan,
     sessions: state.sessions,
@@ -75,6 +76,7 @@ function toSyncPayload(state: AppState): SyncState {
     recovery: state.recovery,
     journal: state.journal,
     roadmap: state.roadmap,
+    activities: state.activities ?? [],
     photoMeta,
     unlocked: state.unlocked,
   };
@@ -105,6 +107,7 @@ function fromServerState(server: SyncState, local: AppState): AppState {
     recovery: server.recovery,
     journal: server.journal,
     roadmap: server.roadmap,
+    activities: server.activities ?? [],
     photos,
     unlocked: server.unlocked,
   };

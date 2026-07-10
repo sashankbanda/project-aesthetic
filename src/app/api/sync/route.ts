@@ -32,7 +32,7 @@ export async function GET() {
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 
-  const [profile, sessions, measurements, foodLog, recovery, journal, roadmap, photoMeta, unlocked] =
+  const [profile, sessions, measurements, foodLog, recovery, journal, roadmap, activities, photoMeta, unlocked] =
     await Promise.all([
       prisma.profile.findUnique({ where: { userId } }),
       prisma.workoutSession.findMany({ where: { userId } }),
@@ -41,6 +41,7 @@ export async function GET() {
       prisma.recoveryEntry.findMany({ where: { userId } }),
       prisma.journalEntry.findMany({ where: { userId } }),
       prisma.roadmapGoal.findMany({ where: { userId } }),
+      prisma.activityEntry.findMany({ where: { userId } }),
       prisma.photoMeta.findMany({ where: { userId } }),
       prisma.unlockedAchievement.findMany({ where: { userId } }),
     ]);
@@ -61,6 +62,7 @@ export async function GET() {
       stepsGoal: profile.stepsGoal,
       sleepGoalH: profile.sleepGoalH,
       nextMilestone: profile.nextMilestone,
+      training: (profile.training as SyncState["profile"]["training"] | null) ?? undefined,
     },
     plan: profile.plan as unknown[],
     sessions: sessions.map((s) => ({
@@ -98,6 +100,13 @@ export async function GET() {
       notes: j.notes,
     })),
     roadmap: roadmap.map((g) => ({ id: g.localId, month: g.month, label: g.label, done: g.done })),
+    activities: activities.map((a) => ({
+      id: a.localId,
+      date: a.date,
+      name: a.name,
+      seconds: a.seconds,
+      at: a.at,
+    })),
     photoMeta: photoMeta.map((p) => ({
       month: p.month,
       angle: p.angle as "front" | "side" | "back",
@@ -123,21 +132,19 @@ export async function PUT(request: Request) {
     );
   }
   const s = parsed.data;
+  const { training, ...profileCols } = s.profile;
+  const profileData = {
+    ...profileCols,
+    training: training === undefined ? Prisma.JsonNull : (training as Prisma.InputJsonValue),
+    plan: s.plan as Prisma.InputJsonValue,
+    stateModifiedAt: new Date(s.modifiedAt),
+  };
 
   await prisma.$transaction([
     prisma.profile.upsert({
       where: { userId },
-      create: {
-        userId,
-        ...s.profile,
-        plan: s.plan as Prisma.InputJsonValue,
-        stateModifiedAt: new Date(s.modifiedAt),
-      },
-      update: {
-        ...s.profile,
-        plan: s.plan as Prisma.InputJsonValue,
-        stateModifiedAt: new Date(s.modifiedAt),
-      },
+      create: { userId, ...profileData },
+      update: profileData,
     }),
     // snapshot semantics: replace each collection wholesale
     prisma.workoutSession.deleteMany({ where: { userId } }),
@@ -163,6 +170,17 @@ export async function PUT(request: Request) {
     prisma.roadmapGoal.deleteMany({ where: { userId } }),
     prisma.roadmapGoal.createMany({
       data: s.roadmap.map((x) => ({ userId, localId: x.id, month: x.month, label: x.label, done: x.done })),
+    }),
+    prisma.activityEntry.deleteMany({ where: { userId } }),
+    prisma.activityEntry.createMany({
+      data: s.activities.map((x) => ({
+        userId,
+        localId: x.id,
+        date: x.date,
+        name: x.name,
+        seconds: x.seconds,
+        at: x.at,
+      })),
     }),
     prisma.photoMeta.deleteMany({ where: { userId } }),
     prisma.photoMeta.createMany({ data: s.photoMeta.map((x) => ({ userId, ...x })) }),

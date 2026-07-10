@@ -102,6 +102,14 @@ export const JournalEntrySchema = z.object({
   notes: z.string().max(2000),
 });
 
+export const ActivityEntrySchema = z.object({
+  id: z.string().max(80),
+  date: dateStr,
+  name: z.string().min(1).max(60),
+  seconds: z.number().int().min(1).max(86400),
+  at: z.string().max(40),
+});
+
 export const RoadmapGoalSchema = z.object({
   id: z.string().max(120),
   month: monthStr,
@@ -128,6 +136,7 @@ export const SyncStateSchema = z.object({
   recovery: z.array(RecoveryEntrySchema).max(2000),
   journal: z.array(JournalEntrySchema).max(2000),
   roadmap: z.array(RoadmapGoalSchema).max(500),
+  activities: z.array(ActivityEntrySchema).max(10000).default([]),
   photoMeta: z.array(PhotoMetaSchema).max(500),
   unlocked: z.record(z.string(), z.string()),
 });

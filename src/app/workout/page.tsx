@@ -7,7 +7,8 @@ import { CHECK_FRAMES, DUMBBELL_FRAMES, GlyphMatrix, MOON_FRAMES, TROPHY_FRAMES 
 import MuscleMap from "@/components/muscle-map";
 import ExerciseMedia from "@/components/exercise-media";
 import HomeAlt from "@/components/home-alt";
-import { Btn, Card, Meter, PageHead, Pill, Stepper } from "@/components/ui";
+import { Btn, Card, Meter, PageHead, Pill, SectionTitle, Stepper } from "@/components/ui";
+import ActivityTracker from "@/components/activity-tracker";
 import { todayStr, update, useApp } from "@/lib/store";
 import { adviseFor, historyFor, prFor } from "@/lib/overload";
 import { Sparkline } from "@/components/charts";
@@ -306,6 +307,10 @@ function WorkoutInner() {
           )}
         </>
       )}
+
+      {/* own exercises — stretching, planks, hangs; works on rest days too */}
+      <SectionTitle>Own exercises</SectionTitle>
+      <ActivityTracker />
 
       {gym && !day.isRest && <GymMode day={day} onExit={() => setGym(false)} />}
 
