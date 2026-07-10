@@ -1,15 +1,16 @@
 "use client";
 import Mounted from "@/components/mounted";
 import ProgressNav from "@/components/progress-nav";
+import { MuscleHeatMap } from "@/components/muscle-map";
 import { Card, PageHead, SectionTitle, Stat } from "@/components/ui";
 import { HBars } from "@/components/charts";
-import { ChartNoAxesColumn, Trophy } from "lucide-react";
-import { useApp } from "@/lib/store";
+import { ChartNoAxesColumn, Flame, HeartPulse, Timer, Trophy } from "lucide-react";
+import { todayStr, useApp } from "@/lib/store";
 import { EXERCISE_MAP } from "@/lib/seed";
-import { prFor } from "@/lib/overload";
+import { completedDates, prFor } from "@/lib/overload";
+import { recentWeeks, recoveryHeatNow } from "@/lib/recap";
 import { analyzeSession, fmtDuration } from "@/lib/session-time";
 import type { MuscleGroup } from "@/lib/types";
-import { Timer } from "lucide-react";
 
 /** primary set = 1.0, secondary = 0.5 */
 function weeklyVolume(state: ReturnType<typeof useApp>): Map<MuscleGroup, number> {
@@ -117,6 +118,8 @@ function AnalyticsInner() {
         </p>
       </Card>
 
+      <RecoveryMap />
+      <ConsistencyGrid />
       <RecentSessions />
 
       <SectionTitle>
@@ -135,6 +138,67 @@ function AnalyticsInner() {
           );
         })}
       </div>
+    </>
+  );
+}
+
+/** Which muscles are ready to hit again — recency-shaded mannequin. */
+function RecoveryMap() {
+  const state = useApp();
+  const heat = recoveryHeatNow(state);
+  if (Object.keys(heat).length === 0) return null;
+  return (
+    <>
+      <SectionTitle>
+        <HeartPulse size={17} className="text-accent2" /> Recovery status
+      </SectionTitle>
+      <Card>
+        <MuscleHeatMap heat={heat} />
+        <p className="mt-3 text-center text-xs text-faint">
+          Muscles fade back to fresh over ~72 hours — train what&apos;s fresh, let the rest recover.
+        </p>
+      </Card>
+    </>
+  );
+}
+
+/** Don't-break-the-chain grid — one dot per day, last 12 weeks. */
+function ConsistencyGrid() {
+  const state = useApp();
+  const trained = completedDates(state.sessions);
+  if (trained.size === 0) return null;
+  const weeks = recentWeeks(new Date(), 12);
+  const today = todayStr();
+  return (
+    <>
+      <SectionTitle>
+        <Flame size={17} className="text-accent2" /> Consistency
+      </SectionTitle>
+      <Card className="!p-4">
+        <div className="flex justify-between gap-1">
+          {weeks.map((week, wi) => (
+            <div key={wi} className="flex flex-1 flex-col gap-1">
+              {week.map((date) => (
+                <div
+                  key={date}
+                  title={date}
+                  className={`aspect-square w-full rounded-[3px] ${
+                    trained.has(date)
+                      ? "bg-accent"
+                      : date > today
+                        ? "bg-transparent"
+                        : "bg-card2"
+                  }`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className="mt-2.5 flex justify-between text-[10px] text-faint">
+          <span>12 weeks ago</span>
+          <span>this week</span>
+        </div>
+      </Card>
     </>
   );
 }

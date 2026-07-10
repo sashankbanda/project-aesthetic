@@ -169,6 +169,58 @@ function Figure({
   );
 }
 
+/**
+ * Recovery heat view — every muscle shaded by how recently it was
+ * trained (1 = just trained/fatigued → 0 = fully fresh).
+ */
+export function MuscleHeatMap({
+  heat,
+  className = "",
+}: {
+  heat: Partial<Record<MuscleGroup, number>>;
+  className?: string;
+}) {
+  const figure = (view: View) => {
+    const shapesFor = view === "front" ? FRONT : BACK;
+    return (
+      <g>
+        <Silhouette />
+        {Object.entries(shapesFor).map(([mg, shapes]) => {
+          const h = heat[mg as MuscleGroup] ?? 0;
+          return h > 0 ? (
+            <MuscleShapes key={mg} shapes={shapes!} fill={PRIMARY} opacity={0.2 + 0.8 * h} />
+          ) : (
+            <MuscleShapes key={mg} shapes={shapes!} fill={MUSCLE_IDLE} />
+          );
+        })}
+      </g>
+    );
+  };
+  return (
+    <div className={className}>
+      <svg viewBox="0 0 420 345" className="mx-auto block w-full max-w-72">
+        {figure("front")}
+        <g transform="translate(220 0)">{figure("back")}</g>
+      </svg>
+      <div className="mt-3 flex items-center justify-center gap-5 text-[11px] text-faint">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: PRIMARY }} /> Fatigued
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full opacity-40" style={{ background: PRIMARY }} /> Recovering
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: MUSCLE_IDLE }} /> Fresh
+        </span>
+      </div>
+      <div className="mt-1 flex justify-center gap-24 text-[10px] uppercase tracking-wider text-faint/70">
+        <span>Front</span>
+        <span>Back</span>
+      </div>
+    </div>
+  );
+}
+
 export default function MuscleMap({
   primary,
   secondary = [],

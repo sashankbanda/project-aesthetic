@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Mounted from "@/components/mounted";
 import SyncNudge from "@/components/sync-nudge";
 import { Card, Meter, Pill, SectionTitle, Tile } from "@/components/ui";
@@ -9,7 +10,8 @@ import { useApp, todayStr, update } from "@/lib/store";
 import { weeklyCompletion, workoutStreak } from "@/lib/overload";
 import { latestMeasurement, proteinForDate } from "@/lib/stats";
 import { EXERCISE_MAP } from "@/lib/seed";
-import type { AppState } from "@/lib/types";
+import { lastWeekRecap } from "@/lib/recap";
+import type { AppState, WorkoutDay, WorkoutSession } from "@/lib/types";
 import {
   ArrowRight,
   Battery,
@@ -20,6 +22,7 @@ import {
   Moon,
   Smile,
   Target,
+  X,
 } from "lucide-react";
 
 // the original hand-tuned lean-aesthetic priorities — used only for
@@ -121,6 +124,13 @@ function HomeInner() {
                 <span className="inline-flex items-center gap-2 rounded-full bg-(--ti-chip) px-4 py-2 text-sm font-medium text-(--ti-chip-ink)">
                   <CheckCheck size={15} /> Completed
                 </span>
+              ) : todaySession?.startedAt ? (
+                <span className="inline-flex items-center gap-3">
+                  <span className="bg-grad inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-accent/30">
+                    Continue <ArrowRight size={15} />
+                  </span>
+                  <LivePulse session={todaySession} plan={todayPlan} />
+                </span>
               ) : (
                 <span className="bg-grad inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-accent/30">
                   Start Workout <ArrowRight size={15} />
@@ -162,6 +172,7 @@ function HomeInner() {
         />
       </div>
 
+      <RecapCard />
       <DeloadBanner />
 
       {/* week + milestone */}
@@ -205,6 +216,85 @@ function HomeInner() {
         </div>
       </Card>
     </>
+  );
+}
+
+/** Live session ticker inside the hero — sets done and minutes elapsed. */
+function LivePulse({
+  session,
+  plan,
+}: {
+  session: WorkoutSession;
+  plan?: WorkoutDay;
+}) {
+  const [minutes, setMinutes] = useState<number | null>(null);
+  useEffect(() => {
+    const tick = () =>
+      setMinutes(Math.max(0, Math.floor((Date.now() - Date.parse(session.startedAt!)) / 60000)));
+    tick();
+    const t = setInterval(tick, 30_000);
+    return () => clearInterval(t);
+  }, [session.startedAt]);
+  const done = session.logs.reduce((n, l) => n + l.sets.filter((s) => s.done).length, 0);
+  const total = plan?.exercises.reduce((n, e) => n + e.workingSets, 0) ?? 0;
+  return (
+    <span className="text-[12px] font-medium text-(--ti-dim) tabular-nums">
+      {done}/{total} sets{minutes !== null ? ` · ${minutes} min` : ""}
+    </span>
+  );
+}
+
+/** Monday/Tuesday recap of last week — the peak-end of every training week. */
+function RecapCard() {
+  const state = useApp();
+  const [dismissed, setDismissed] = useState(false);
+  const weekday = new Date(todayStr() + "T12:00:00").getDay();
+  if (weekday !== 1 && weekday !== 2) return null;
+  const recap = lastWeekRecap(state, new Date(todayStr() + "T12:00:00"));
+  if (!recap || dismissed) return null;
+  if (typeof window !== "undefined" && window.localStorage.getItem(`recap-${recap.weekKey}`) === "1")
+    return null;
+  const dismiss = () => {
+    window.localStorage.setItem(`recap-${recap.weekKey}`, "1");
+    setDismissed(true);
+  };
+  const vol = recap.volumeKg >= 1000 ? `${(recap.volumeKg / 1000).toFixed(1)}t` : `${recap.volumeKg} kg`;
+  return (
+    <div className="tile-dark mt-4 p-5">
+      <div className="dot-texture text-ink" />
+      <div className="relative">
+        <div className="flex items-start justify-between">
+          <div className="label-mono text-faint">Last week</div>
+          <button onClick={dismiss} aria-label="dismiss recap" className="pressable -mr-1 -mt-1 p-1 text-faint">
+            <X size={14} />
+          </button>
+        </div>
+        <div className="mt-2 flex items-end gap-6">
+          <div>
+            <div className="text-[26px] font-light leading-none tabular-nums">{recap.workouts}</div>
+            <div className="mt-1 text-[10px] uppercase tracking-wide text-faint">workouts</div>
+          </div>
+          <div>
+            <div className="text-[26px] font-light leading-none tabular-nums">{vol}</div>
+            <div className="mt-1 text-[10px] uppercase tracking-wide text-faint">lifted</div>
+          </div>
+          {recap.avgScore !== null && (
+            <div>
+              <div className="text-[26px] font-light leading-none tabular-nums">
+                {Math.round(recap.avgScore * 100)}%
+              </div>
+              <div className="mt-1 text-[10px] uppercase tracking-wide text-faint">focus</div>
+            </div>
+          )}
+        </div>
+        {recap.volumeDeltaPct !== null && (
+          <div className={`mt-3 text-[12px] font-medium ${recap.volumeDeltaPct >= 0 ? "text-good" : "text-warn"}`}>
+            {recap.volumeDeltaPct >= 0 ? "+" : ""}
+            {recap.volumeDeltaPct}% volume vs the week before
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
