@@ -15,7 +15,7 @@ import { useAuthEnabled } from "./auth-provider";
 import { Btn, Stepper, inputCls } from "./ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { latestMeasurement } from "@/lib/stats";
-import { goalBadgesFor, goalOrderFor, TEMPLATES } from "@/lib/templates";
+import { goalBadgesFor, goalOrderFor, milestoneFor, TEMPLATES } from "@/lib/templates";
 import { disclaimersFor, nutritionFor, resolvePlan } from "@/lib/plan-engine";
 import type {
   AgeGroup,
@@ -142,6 +142,7 @@ export default function PlanWizard({
       draft.profile.proteinGoalG = nutri.proteinG;
       draft.profile.targetWeightKg = targets.targetWeightKg;
       draft.profile.targetBodyFatPct = targets.targetBodyFatPct;
+      draft.profile.nextMilestone = milestoneFor(goal, environment);
       if (mode === "onboard") {
         draft.onboarded = true;
         if (name.trim()) draft.profile.name = name.trim().slice(0, 40);

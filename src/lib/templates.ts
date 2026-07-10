@@ -311,6 +311,25 @@ export function goalOrderFor(gender: Gender): Goal[] {
   return GOAL_ORDER;
 }
 
+/** a concrete first milestone per goal — the wizard writes this into the profile */
+export function milestoneFor(goal: Goal, environment: Environment): string {
+  if (goal === "strength" && (environment === "bodyweight" || environment === "home-minimal"))
+    return "10 strict push-ups → archer push-up";
+  const map: Record<Goal, string> = {
+    starter: "Complete your first 10 workouts",
+    "fat-loss": "Waist −4 cm",
+    strength: "Bench Press 60 kg × 8",
+    bodybuilding: "Add 2 kg at the same waist size",
+    "lean-aesthetic": "Bench Press 60 kg × 8",
+    calisthenics: "First strict pull-up",
+    "general-fitness": "8 weeks without missing a session",
+    endurance: "30 minutes nonstop cardio",
+    recomp: "Same weight, −3% body fat",
+    mobility: "Full-depth squat, heels down",
+  };
+  return map[goal];
+}
+
 export function goalBadgesFor(gender: Gender): Partial<Record<Goal, string>> {
   if (gender === "male") return { starter: "Recommended", "lean-aesthetic": "Popular", bodybuilding: "Popular" };
   if (gender === "female") return { starter: "Recommended", recomp: "Popular", "fat-loss": "Popular" };

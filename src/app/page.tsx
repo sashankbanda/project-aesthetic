@@ -8,6 +8,8 @@ import { Sparkline } from "@/components/charts";
 import { useApp, todayStr, update } from "@/lib/store";
 import { weeklyCompletion, workoutStreak } from "@/lib/overload";
 import { latestMeasurement, proteinForDate } from "@/lib/stats";
+import { EXERCISE_MAP } from "@/lib/seed";
+import type { AppState } from "@/lib/types";
 import {
   ArrowRight,
   Battery,
@@ -20,6 +22,8 @@ import {
   Target,
 } from "lucide-react";
 
+// the original hand-tuned lean-aesthetic priorities — used only for
+// legacy profiles that never ran the plan wizard
 const PRIORITIES = [
   "Upper Chest",
   "Side Delts",
@@ -30,6 +34,22 @@ const PRIORITIES = [
   "Waist Reduction",
   "Legs",
 ];
+
+/** wizard users: focus = where their actual plan puts its weekly sets */
+function prioritiesFor(state: AppState): string[] {
+  if (!state.profile.training) return PRIORITIES;
+  const sets = new Map<string, number>();
+  for (const day of state.plan) {
+    for (const pe of day.exercises) {
+      const primary = EXERCISE_MAP[pe.exerciseId]?.primary;
+      if (primary) sets.set(primary, (sets.get(primary) ?? 0) + pe.workingSets);
+    }
+  }
+  return [...sets.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 8)
+    .map(([muscle]) => muscle);
+}
 
 const MOODS = ["😞", "😐", "🙂", "😊", "🤩"];
 
@@ -173,11 +193,11 @@ function HomeInner() {
       <SectionTitle>Daily check-in</SectionTitle>
       <CheckInCard />
 
-      {/* coach focus */}
+      {/* coach focus — where this week's plan actually puts its volume */}
       <SectionTitle>Coach&apos;s focus</SectionTitle>
       <Card className="!p-4">
         <div className="flex flex-wrap gap-2">
-          {PRIORITIES.map((p, i) => (
+          {prioritiesFor(state).map((p, i) => (
             <Pill key={p} tone={i < 4 ? "accent" : "default"}>
               <span className="font-bold">{i + 1}</span> {p}
             </Pill>
