@@ -2,6 +2,7 @@
 import { useState, useSyncExternalStore } from "react";
 import Mounted from "@/components/mounted";
 import AccountCard from "@/components/account-card";
+import RemindersCard from "@/components/reminders-card";
 import PlanWizard from "@/components/plan-wizard";
 import { TEMPLATES } from "@/lib/templates";
 import { Card, PageHead, Segmented } from "@/components/ui";
@@ -48,6 +49,7 @@ function MoreInner() {
         <AccountCard />
       </div>
 
+      <RemindersCard />
       <ThemeCard />
 
       <Card className="!p-0 divide-y divide-line/40 overflow-hidden">

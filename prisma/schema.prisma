@@ -34,6 +34,7 @@ model User {
   roadmapGoals    RoadmapGoal[]
   photoMeta       PhotoMeta[]
   achievements    UnlockedAchievement[]
+  pushSubs        PushSubscription[]
 }
 
 model Account {
@@ -180,6 +181,20 @@ model PhotoMeta {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, month, angle])
+}
+
+/// Web-push endpoints for workout reminders — one row per device.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model UnlockedAchievement {
