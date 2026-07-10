@@ -170,13 +170,6 @@ textarea,
   -webkit-backdrop-filter: blur(22px) saturate(1.4);
 }
 
-@utility text-grad {
-  background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-dim) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 @utility bg-grad {
   background: linear-gradient(165deg, #ff5b3d 0%, #ef3517 100%);
 }

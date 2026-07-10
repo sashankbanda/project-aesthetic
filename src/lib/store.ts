@@ -57,12 +57,6 @@ export function replaceState(next: AppState) {
   listeners.forEach((l) => l());
 }
 
-export function resetAll() {
-  cache = createInitialState();
-  persist();
-  listeners.forEach((l) => l());
-}
-
 export function importState(json: string): boolean {
   try {
     const parsed = BackupSchema.safeParse(JSON.parse(json));

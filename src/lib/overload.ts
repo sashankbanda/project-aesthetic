@@ -121,12 +121,6 @@ export function adviseFor(
   };
 }
 
-/** Default weight to prefill set rows for a planned exercise. */
-export function prefillWeight(state: AppState, planned: PlannedExercise, excludeSessionId?: string): number {
-  const advice = adviseFor(state, planned, { excludeSessionId });
-  return advice.suggestedWeight ?? 0;
-}
-
 // ---------- streak / completion ----------
 export function completedDates(sessions: WorkoutSession[]): Set<string> {
   return new Set(sessions.filter((s) => s.completedAt).map((s) => s.date));

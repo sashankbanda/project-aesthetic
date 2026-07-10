@@ -13,7 +13,7 @@ import DotNumber from "./dot-number";
 import { DUMBBELL_FRAMES, GlyphMatrix } from "./glyph";
 import { useAuthEnabled } from "./auth-provider";
 import { Btn, Stepper, inputCls } from "./ui";
-import { todayStr, update, useApp } from "@/lib/store";
+import { monthStr, todayStr, update, useApp } from "@/lib/store";
 import { latestMeasurement } from "@/lib/stats";
 import { getThemeMode, setThemeMode, type ThemeMode } from "@/lib/theme";
 import { goalBadgesFor, goalOrderFor, milestoneFor, TEMPLATES } from "@/lib/templates";
@@ -157,6 +157,13 @@ export default function PlanWizard({
         draft.profile.birthYear = new Date().getFullYear() - age;
         draft.profile.heightCm = heightCm;
         draft.measurements = [{ date: todayStr(), weightKg }];
+        // roadmap seeds that match the chosen goal (existing users keep theirs)
+        const month = monthStr();
+        draft.roadmap = [
+          { id: "goal-milestone", month, label: milestoneFor(goal, environment), done: false },
+          { id: "goal-consistency", month, label: `Train ${daysPerWeek}× every week this month`, done: false },
+          { id: "goal-photos", month, label: "Take first progress photos", done: false },
+        ];
       }
       // switch mode: sessions, measurements, photos, journal — all untouched
     });

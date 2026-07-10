@@ -20,12 +20,16 @@ const GROUPS: (MuscleGroup | "All")[] = [
   "Rear Delts",
   "Lats",
   "Upper Back",
+  "Traps",
   "Biceps",
   "Triceps",
+  "Forearms",
   "Quads",
   "Hamstrings",
+  "Glutes",
   "Calves",
   "Abs",
+  "Lower Back",
 ];
 
 export default function LibraryPage() {
