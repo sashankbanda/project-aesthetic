@@ -23,11 +23,11 @@ import OnboardingGate from "./onboarding";
 
 /** Bottom tab bar — the app's primary navigation. */
 const TABS = [
-  { href: "/", icon: House, label: "Home" },
-  { href: "/workout", icon: Dumbbell, label: "Train" },
-  { href: "/nutrition", icon: Flame, label: "Fuel" },
-  { href: "/body", icon: ChartNoAxesColumn, label: "Progress" },
-  { href: "/more", icon: LayoutGrid, label: "More" },
+  { href: "/", icon: House, label: "Home", tour: undefined },
+  { href: "/workout", icon: Dumbbell, label: "Train", tour: "tab-train" },
+  { href: "/nutrition", icon: Flame, label: "Fuel", tour: "tab-fuel" },
+  { href: "/body", icon: ChartNoAxesColumn, label: "Progress", tour: "tab-progress" },
+  { href: "/more", icon: LayoutGrid, label: "More", tour: "tab-more" },
 ] as const;
 
 /** Full navigation — desktop sidebar. */
@@ -151,13 +151,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {/* floating pill tab bar — mobile only */}
       <nav className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[max(env(safe-area-inset-bottom),14px)] md:hidden">
         <div className="glass mx-auto flex max-w-sm items-stretch justify-around rounded-full border border-line/70 px-2 py-1 shadow-[0_25px_50px_-12px_var(--shadow-bar)]">
-          {TABS.map(({ href, icon: Icon, label }) => {
+          {TABS.map(({ href, icon: Icon, label, tour }) => {
             const isActive = active === href;
             return (
               <Link
                 key={href}
                 href={href}
                 aria-label={label}
+                data-tour={tour}
                 className="pressable relative flex min-w-14 flex-col items-center gap-1 rounded-full px-2 pb-2 pt-2.5"
               >
                 <Icon

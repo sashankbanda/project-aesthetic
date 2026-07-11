@@ -1,5 +1,7 @@
 "use client";
 import { useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { requestTour } from "@/components/app-tour";
 import Mounted from "@/components/mounted";
 import AccountCard from "@/components/account-card";
 import RemindersCard from "@/components/reminders-card";
@@ -14,6 +16,7 @@ import { ACHIEVEMENTS } from "@/lib/seed";
 import { getThemeMode, setThemeMode, subscribeTheme, type ThemeMode } from "@/lib/theme";
 import {
   BookOpen,
+  Compass,
   Download,
   Dumbbell,
   Heart,
@@ -36,6 +39,7 @@ export default function MorePage() {
 
 function MoreInner() {
   const state = useApp();
+  const router = useRouter();
   const [planWizard, setPlanWizard] = useState(false);
   const unlocked = Object.keys(state.unlocked).length;
   const journalCount = state.journal.length;
@@ -100,6 +104,16 @@ function MoreInner() {
           icon={<BookOpen size={17} />}
           title="Exercise Library"
           sub="Form guides, mistakes, alternatives"
+        />
+        <ListRow
+          onClick={() => {
+            requestTour();
+            router.push("/");
+          }}
+          icon={<Compass size={17} />}
+          title="App Tour"
+          sub="A 30-second walkthrough of everything"
+          right={<span />}
         />
       </Card>
 

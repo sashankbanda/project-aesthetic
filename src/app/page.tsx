@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Mounted from "@/components/mounted";
+import AppTour from "@/components/app-tour";
 import SyncNudge from "@/components/sync-nudge";
 import { Card, Meter, Pill, SectionTitle, Tile } from "@/components/ui";
 import { FLAME_FRAMES, GlyphMatrix, MOOD_GLYPHS } from "@/components/glyph";
@@ -102,7 +103,7 @@ function HomeInner() {
       </div>
 
       {/* hero: today's workout — inverted (off-white) tile */}
-      <Link href="/workout" className="pressable block">
+      <Link href="/workout" className="pressable block" data-tour="hero">
         <div className="tile-light p-6">
           <div className="dot-texture" />
           <div className="relative">
@@ -142,7 +143,7 @@ function HomeInner() {
       </Link>
 
       {/* stats row — dot-matrix tiles, streak carries the accent */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="mt-4 grid grid-cols-3 gap-3" data-tour="stats">
         <Tile
           tone="accent"
           label="Streak"
@@ -202,7 +203,11 @@ function HomeInner() {
 
       {/* daily check-in — 3 taps, no page hopping */}
       <SectionTitle>Daily check-in</SectionTitle>
-      <CheckInCard />
+      <div data-tour="checkin">
+        <CheckInCard />
+      </div>
+
+      <AppTour />
 
       {/* coach focus — where this week's plan actually puts its volume */}
       <SectionTitle>Coach&apos;s focus</SectionTitle>
