@@ -216,6 +216,25 @@ export function resolvePlan(t: TrainingProfile): WorkoutDay[] {
   return [...days, ...restDays].sort((a, b) => a.weekday - b.weekday);
 }
 
+/**
+ * Rotate which workout opens the week — the "everyone benches on
+ * Monday" fix. Training content shifts across the SAME weekdays,
+ * so session spacing (and therefore recovery) stays exactly as
+ * the template designed it. History is untouched: day ids travel
+ * with their content.
+ */
+export function rotatePlanOrder(plan: WorkoutDay[], firstDayId: string): WorkoutDay[] {
+  const train = plan.filter((d) => !d.isRest).sort((a, b) => a.weekday - b.weekday);
+  const idx = train.findIndex((d) => d.id === firstDayId);
+  if (idx <= 0) return plan;
+  const weekdays = train.map((d) => d.weekday);
+  const rotated = [...train.slice(idx), ...train.slice(0, idx)];
+  const newWeekday = new Map(rotated.map((d, i) => [d.id, weekdays[i]]));
+  return plan
+    .map((d) => (d.isRest ? d : { ...d, weekday: newWeekday.get(d.id)! }))
+    .sort((a, b) => a.weekday - b.weekday);
+}
+
 // ---------- companions the UI consumes ----------
 
 /** safety notes to surface in the preview and on the plan — data, not medical advice */

@@ -7,6 +7,7 @@ import {
   ChartNoAxesColumn,
   Download,
   Dumbbell,
+  Flag,
   Flame,
   House,
   LayoutGrid,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 import { exportState, importState } from "@/lib/store";
 import OnboardingGate from "./onboarding";
+import AppTour from "./app-tour";
 
 /** Bottom tab bar — the app's primary navigation. */
 const TABS = [
@@ -37,6 +39,7 @@ const NAV = [
   { href: "/nutrition", icon: Flame, label: "Fuel" },
   { href: "/body", icon: Ruler, label: "My Body" },
   { href: "/coach", icon: Sparkles, label: "AI Coach" },
+  { href: "/challenges", icon: Flag, label: "Challenges" },
   { href: "/analytics", icon: ChartNoAxesColumn, label: "Analytics" },
   { href: "/photos", icon: Camera, label: "Photos" },
   { href: "/roadmap", icon: Map, label: "Roadmap" },
@@ -86,6 +89,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh">
       {/* first-run wizard (fixed overlay; renders nothing once onboarded) */}
       <OnboardingGate />
+      {/* guided tours — auto quick-tour after onboarding, restartable from More */}
+      <AppTour />
 
       {/* desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-60 flex-col gap-1 border-r border-line/50 bg-elev/80 p-5 backdrop-blur-md md:flex">

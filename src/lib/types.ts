@@ -263,6 +263,15 @@ export interface RoadmapGoal {
   done: boolean;
 }
 
+/** an active commitment arc — 30/60/90 days of showing up */
+export interface ChallengeState {
+  id: string;
+  name: string;
+  days: number;
+  /** yyyy-mm-dd */
+  startedAt: string;
+}
+
 export interface AchievementDef {
   id: string;
   icon: string;
@@ -287,6 +296,8 @@ export interface AppState {
   roadmap: RoadmapGoal[];
   /** self-logged activities (own exercises with stopwatch times) */
   activities: ActivityEntry[];
+  /** the active challenge, if any */
+  challenge?: ChallengeState;
   /** achievementId → ISO date unlocked */
   unlocked: Record<string, string>;
 }

@@ -77,6 +77,8 @@ model Profile {
   plan             Json
   /// TrainingProfile (plan wizard dimensions) — syncs across devices
   training         Json?
+  /// active ChallengeState (30/60/90-day arcs) — syncs across devices
+  challenge        Json?
   /// last-write-wins timestamp for whole-state sync
   stateModifiedAt  DateTime @default(now())
 
@@ -195,6 +197,8 @@ model PushSubscription {
   auth         String
   /// preferred reminder hour in IST (0–23)
   reminderHour Int      @default(18)
+  /// day-part lifestyle nudges (water, walks, wind-down)
+  nudges       Boolean  @default(true)
   createdAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

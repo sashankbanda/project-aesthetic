@@ -77,6 +77,7 @@ function toSyncPayload(state: AppState): SyncState {
     journal: state.journal,
     roadmap: state.roadmap,
     activities: state.activities ?? [],
+    challenge: state.challenge,
     photoMeta,
     unlocked: state.unlocked,
   };
@@ -108,6 +109,7 @@ function fromServerState(server: SyncState, local: AppState): AppState {
     journal: server.journal,
     roadmap: server.roadmap,
     activities: server.activities ?? [],
+    challenge: server.challenge,
     photos,
     unlocked: server.unlocked,
   };

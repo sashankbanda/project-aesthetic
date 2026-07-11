@@ -102,6 +102,13 @@ export const JournalEntrySchema = z.object({
   notes: z.string().max(2000),
 });
 
+export const ChallengeStateSchema = z.object({
+  id: z.string().max(40),
+  name: z.string().max(60),
+  days: z.number().int().min(7).max(365),
+  startedAt: dateStr,
+});
+
 export const ActivityEntrySchema = z.object({
   id: z.string().max(80),
   date: dateStr,
@@ -137,6 +144,7 @@ export const SyncStateSchema = z.object({
   journal: z.array(JournalEntrySchema).max(2000),
   roadmap: z.array(RoadmapGoalSchema).max(500),
   activities: z.array(ActivityEntrySchema).max(10000).default([]),
+  challenge: ChallengeStateSchema.optional(),
   photoMeta: z.array(PhotoMetaSchema).max(500),
   unlocked: z.record(z.string(), z.string()),
 });

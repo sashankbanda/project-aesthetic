@@ -1,137 +1,137 @@
 "use client";
 // ============================================================
-// App tour — Photoshop-style coach marks. A dimmed overlay with
-// a spotlight cutout walks through the Home screen and the tab
-// bar. Auto-runs once after onboarding; restartable from More.
-// Skippable at every step (Hick's law: guidance, never a cage).
+// Tour engine — builds Quick (30s essentials) and Full (every
+// feature, page by page) tours from lib/tour-registry.ts. It
+// navigates between pages, waits for each target to render,
+// spotlights it, and silently skips targets that don't exist
+// (conditional features, desktop layouts).
+//
+// Mounted once in the Shell. New features only need a registry
+// stop + a data-tour attribute — the coverage test enforces it.
 // ============================================================
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { TOUR_STOPS, type TourStop } from "@/lib/tour-registry";
 import { useApp } from "@/lib/store";
 
 const DONE_KEY = "aesthetic-tour-done";
 const REQUEST_KEY = "aesthetic-tour-request";
 
-/** More page calls this, then navigates home — the tour picks it up there. */
-export function requestTour() {
+export type TourMode = "quick" | "full";
+
+/** call from anywhere, then navigate — the engine picks it up */
+export function requestTour(mode: TourMode) {
   try {
-    window.sessionStorage.setItem(REQUEST_KEY, "1");
+    window.sessionStorage.setItem(REQUEST_KEY, mode);
   } catch {
     /* private mode — tour just won't auto-start */
   }
 }
 
-interface Step {
-  target: string; // [data-tour=...]
-  title: string;
-  text: string;
-}
-
-const STEPS: Step[] = [
-  {
-    target: "hero",
-    title: "Today, decided for you",
-    text: "Your plan puts the right workout here every day. One tap starts it — sets, reps and weights come pre-filled.",
-  },
-  {
-    target: "stats",
-    title: "Your vitals",
-    text: "Streak, weight and protein at a glance. The streak turns orange — keep it alive.",
-  },
-  {
-    target: "checkin",
-    title: "Two-second check-ins",
-    text: "Water, sleep, steps and mood — everything logs with a single tap, and taps are reversible.",
-  },
-  {
-    target: "tab-train",
-    title: "Train",
-    text: "Your workout tracker: tick sets, auto rest timer, Gym Mode for barely touching the phone.",
-  },
-  {
-    target: "tab-fuel",
-    title: "Fuel",
-    text: "Protein tracking with one-tap foods — and budget-friendly suggestions to close the gap.",
-  },
-  {
-    target: "tab-progress",
-    title: "Progress",
-    text: "Measurements, progress photos (they never leave your device) and analytics like your recovery map.",
-  },
-  {
-    target: "tab-more",
-    title: "Everything else",
-    text: "AI coach, plan switching, themes, reminders, backups. Retake this tour from here anytime.",
-  },
-];
-
 export default function AppTour() {
   const state = useApp();
-  const [idx, setIdx] = useState<number | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [steps, setSteps] = useState<TourStop[] | null>(null);
+  const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
 
-  // start: explicit request (from More) or first Home visit after onboarding
+  // start: explicit request wins; otherwise auto quick-tour once after onboarding
   useEffect(() => {
-    const requested = window.sessionStorage.getItem(REQUEST_KEY) === "1";
-    const done = window.localStorage.getItem(DONE_KEY) === "1";
-    if (requested) {
+    const requested = window.sessionStorage.getItem(REQUEST_KEY) as TourMode | null;
+    if (requested === "quick" || requested === "full") {
       window.sessionStorage.removeItem(REQUEST_KEY);
-      const t = setTimeout(() => setIdx(0), 400);
+      const t = setTimeout(() => {
+        setIdx(0);
+        setSteps(requested === "quick" ? TOUR_STOPS.filter((s) => s.quick) : TOUR_STOPS);
+      }, 400);
       return () => clearTimeout(t);
     }
-    if (!done && state.onboarded && state.sessions.length === 0) {
-      const t = setTimeout(() => setIdx(0), 800); // let the page settle first
+    if (
+      window.localStorage.getItem(DONE_KEY) !== "1" &&
+      state.onboarded &&
+      state.sessions.length === 0 &&
+      pathname === "/"
+    ) {
+      const t = setTimeout(() => {
+        setIdx(0);
+        setSteps(TOUR_STOPS.filter((s) => s.quick));
+      }, 800);
       return () => clearTimeout(t);
     }
-  }, [state.onboarded, state.sessions.length]);
+  }, [state.onboarded, state.sessions.length, pathname]);
 
   const finish = useCallback(() => {
     window.localStorage.setItem(DONE_KEY, "1");
-    setIdx(null);
+    setSteps(null);
+    setRect(null);
+    setIdx(0);
   }, []);
-  const next = useCallback(() => {
-    if (idx !== null && idx >= STEPS.length - 1) finish();
-    else setIdx((i) => (i === null ? null : i + 1));
-  }, [idx, finish]);
 
-  // measure the current target (skipping steps whose element isn't on screen)
-  useEffect(() => {
-    if (idx === null || idx >= STEPS.length) return;
-    const el = document.querySelector(`[data-tour="${STEPS[idx].target}"]`);
-    if (!el) {
-      // e.g. tab bar steps on desktop — move on (async: effects must not set state directly)
-      const skip = setTimeout(next, 0);
-      return () => clearTimeout(skip);
+  const next = useCallback(() => {
+    if (!steps) return;
+    if (idx >= steps.length - 1) finish();
+    else {
+      setRect(null);
+      setIdx((i) => i + 1);
     }
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [steps, idx, finish]);
+
+  const back = useCallback(() => {
+    setRect(null);
+    setIdx((i) => Math.max(0, i - 1));
+  }, []);
+
+  const step = steps?.[idx];
+
+  // navigate to the step's page when needed
+  useEffect(() => {
+    if (step && pathname !== step.path) router.push(step.path);
+  }, [step, pathname, router]);
+
+  // wait for the target to exist (pages hydrate behind a skeleton), then measure
+  useEffect(() => {
+    if (!step || pathname !== step.path) return;
+    let tries = 0;
     let raf = 0;
-    const measure = () => setRect(el.getBoundingClientRect());
-    const t = setTimeout(() => {
-      raf = requestAnimationFrame(measure);
-    }, 350); // after the smooth scroll settles
+    const poll = setInterval(() => {
+      const el = document.querySelector(`[data-tour="${step.key}"]`);
+      if (el) {
+        clearInterval(poll);
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => {
+          raf = requestAnimationFrame(() => setRect(el.getBoundingClientRect()));
+        }, 350);
+      } else if (++tries > 16) {
+        clearInterval(poll);
+        next(); // target doesn't exist here — skip the stop
+      }
+    }, 150);
+    const measure = () => {
+      const el = document.querySelector(`[data-tour="${step.key}"]`);
+      if (el) setRect(el.getBoundingClientRect());
+    };
     window.addEventListener("resize", measure);
     return () => {
-      clearTimeout(t);
+      clearInterval(poll);
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", measure);
     };
-  }, [idx, next]);
+  }, [step, pathname, next]);
 
-  if (idx === null || idx >= STEPS.length || !rect) return null;
-  const step = STEPS[idx];
+  if (!steps || !step || !rect) return null;
 
   const pad = 8;
   const top = Math.max(0, rect.top - pad);
   const left = Math.max(0, rect.left - pad);
   const width = Math.min(window.innerWidth - left, rect.width + pad * 2);
   const height = rect.height + pad * 2;
-  // card above or below the spotlight, whichever half has room
   const cardBelow = rect.top + rect.height / 2 < window.innerHeight / 2;
 
   return createPortal(
     <div className="fixed inset-0 z-[90]" role="dialog" aria-label="app tour">
-      {/* spotlight: one hole, everything else dimmed */}
       <div
         className="absolute rounded-3xl transition-all duration-300"
         style={{
@@ -152,20 +152,19 @@ export default function AppTour() {
         <div className="rise-in card relative p-5 shadow-2xl">
           <div className="label-mono mb-1.5 flex items-center gap-2 text-faint">
             <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            {idx + 1} / {STEPS.length}
+            {idx + 1} / {steps.length}
           </div>
           <div className="text-[17px] font-medium">{step.title}</div>
           <p className="mt-1 text-[13px] font-light leading-relaxed text-dim">{step.text}</p>
 
           <div className="mt-4 flex items-center gap-2">
-            {/* dot progress (goal-gradient: the end is visibly close) */}
-            <div className="flex flex-1 gap-1.5">
-              {STEPS.map((_, i) => (
-                <span key={i} className={`h-1 w-4 rounded-full ${i <= idx ? "bg-accent" : "bg-card2"}`} />
+            <div className="flex flex-1 flex-wrap gap-1.5">
+              {steps.map((_, i) => (
+                <span key={i} className={`h-1 w-3 rounded-full ${i <= idx ? "bg-accent" : "bg-card2"}`} />
               ))}
             </div>
             {idx > 0 && (
-              <button onClick={() => setIdx(idx - 1)} aria-label="back" className="pressable grid h-11 w-11 place-items-center rounded-full border border-line text-dim">
+              <button onClick={back} aria-label="back" className="pressable grid h-11 w-11 place-items-center rounded-full border border-line text-dim">
                 <ArrowLeft size={16} />
               </button>
             )}
@@ -173,7 +172,7 @@ export default function AppTour() {
               onClick={next}
               className="bg-grad pressable flex h-11 items-center gap-1.5 rounded-full px-5 text-[13px] font-medium text-white"
             >
-              {idx === STEPS.length - 1 ? "Done" : "Next"} <ArrowRight size={14} />
+              {idx === steps.length - 1 ? "Done" : "Next"} <ArrowRight size={14} />
             </button>
           </div>
           <button onClick={finish} aria-label="skip tour" className="pressable absolute right-3 top-3 flex items-center gap-1 p-1.5 text-[11px] font-semibold text-faint">

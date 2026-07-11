@@ -19,6 +19,7 @@ import {
   Compass,
   Download,
   Dumbbell,
+  Flag,
   Heart,
   Map,
   Moon,
@@ -59,22 +60,34 @@ function MoreInner() {
       <ThemeCard />
 
       <Card className="!p-0 divide-y divide-line/40 overflow-hidden">
-        <ListRow
-          onClick={() => setPlanWizard(true)}
-          icon={<Dumbbell size={17} />}
-          title="Training Plan"
-          sub={
-            training
-              ? `${TEMPLATES[training.goal].label} · ${training.daysPerWeek} days · history is kept when you switch`
-              : "Rebuild your weekly plan around a new goal"
-          }
-        />
-        <ListRow
-          href="/coach"
-          icon={<Sparkles size={17} />}
-          title="AI Coach"
-          sub="Weekly check-ins from your own training data"
-        />
+        <div data-tour="more-plan">
+          <ListRow
+            onClick={() => setPlanWizard(true)}
+            icon={<Dumbbell size={17} />}
+            title="Training Plan"
+            sub={
+              training
+                ? `${TEMPLATES[training.goal].label} · ${training.daysPerWeek} days · history is kept when you switch`
+                : "Rebuild your weekly plan around a new goal"
+            }
+          />
+        </div>
+        <div data-tour="more-coach">
+          <ListRow
+            href="/coach"
+            icon={<Sparkles size={17} />}
+            title="AI Coach"
+            sub="Weekly check-ins from your own training data"
+          />
+        </div>
+        <div data-tour="more-challenges">
+          <ListRow
+            href="/challenges"
+            icon={<Flag size={17} />}
+            title="Challenges"
+            sub={state.challenge ? `${state.challenge.name} in progress` : "30, 60 and 90-day arcs"}
+          />
+        </div>
         <ListRow
           href="/roadmap"
           icon={<Map size={17} />}
@@ -107,12 +120,22 @@ function MoreInner() {
         />
         <ListRow
           onClick={() => {
-            requestTour();
+            requestTour("quick");
             router.push("/");
           }}
           icon={<Compass size={17} />}
-          title="App Tour"
-          sub="A 30-second walkthrough of everything"
+          title="Quick Tour"
+          sub="30 seconds — the essentials"
+          right={<span />}
+        />
+        <ListRow
+          onClick={() => {
+            requestTour("full");
+            router.push("/");
+          }}
+          icon={<Compass size={17} />}
+          title="Full Tour"
+          sub="Every feature, page by page (~2 min)"
           right={<span />}
         />
       </Card>

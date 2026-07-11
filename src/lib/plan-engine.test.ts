@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolvePlan } from "./plan-engine";
+import { resolvePlan, rotatePlanOrder } from "./plan-engine";
 import { DEFAULT_PLAN, EXERCISES, EXERCISE_MAP } from "./seed";
 import { TRAINING_WEEKDAYS } from "./templates";
 import type { TrainingProfile } from "./types";
@@ -111,6 +111,20 @@ describe("resolvePlan", () => {
 
   it("is deterministic", () => {
     expect(resolvePlan(base)).toEqual(resolvePlan(base));
+  });
+
+  it("rotates the week order without touching weekday slots or rest days", () => {
+    const plan = resolvePlan({ ...base, daysPerWeek: 3, goal: "strength" });
+    const train = plan.filter((d) => !d.isRest);
+    const rotated = rotatePlanOrder(plan, train[1].id);
+    const rotatedTrain = rotated.filter((d) => !d.isRest);
+    // same weekday slots, same day ids — just a shifted assignment
+    expect(rotatedTrain.map((d) => d.weekday)).toEqual(train.map((d) => d.weekday));
+    expect(rotatedTrain[0].id).toBe(train[1].id);
+    expect(new Set(rotated.map((d) => d.id))).toEqual(new Set(plan.map((d) => d.id)));
+    expect(rotated.filter((d) => d.isRest)).toEqual(plan.filter((d) => d.isRest));
+    // rotating to the current first day is a no-op
+    expect(rotatePlanOrder(plan, train[0].id)).toEqual(plan);
   });
 
   it("returns the hand-tuned plan for the original lean-aesthetic gym profile", () => {

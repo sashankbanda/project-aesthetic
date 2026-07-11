@@ -10,6 +10,7 @@ import { Card, Switch } from "./ui";
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const HOUR_KEY = "aesthetic-reminder-hour";
+const NUDGES_KEY = "aesthetic-nudges";
 const HOURS = [5, 6, 7, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 20, 21, 22];
 
 const fmtHour = (h: number) =>
@@ -33,6 +34,21 @@ function RemindersInner() {
     const h = parseInt(window.localStorage.getItem(HOUR_KEY) ?? "18", 10);
     return Number.isFinite(h) && h >= 0 && h <= 23 ? h : 18;
   });
+  const [nudges, setNudges] = useState(
+    () => typeof window === "undefined" || window.localStorage.getItem(NUDGES_KEY) !== "0",
+  );
+
+  /** re-POST the stored subscription with a preference change */
+  const pushPrefs = async (patch: { reminderHour?: number; nudges?: boolean }) => {
+    const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+    const sub = await reg?.pushManager.getSubscription();
+    if (!sub) return;
+    await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...sub.toJSON(), ...patch }),
+    });
+  };
 
   const supported =
     typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
@@ -63,7 +79,7 @@ function RemindersInner() {
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...sub.toJSON(), reminderHour: hour }),
+        body: JSON.stringify({ ...sub.toJSON(), reminderHour: hour, nudges }),
       });
       if (!res.ok) throw new Error("Couldn't save the subscription — try again.");
       setEnabled(true);
@@ -100,19 +116,21 @@ function RemindersInner() {
     setHour(h);
     window.localStorage.setItem(HOUR_KEY, String(h));
     if (!enabled) return;
-    // already subscribed — update the stored preference server-side
     try {
-      const reg = await navigator.serviceWorker.getRegistration("/sw.js");
-      const sub = await reg?.pushManager.getSubscription();
-      if (sub) {
-        await fetch("/api/push/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...sub.toJSON(), reminderHour: h }),
-        });
-      }
+      await pushPrefs({ reminderHour: h });
     } catch {
       setError("Couldn't save the new time — try again.");
+    }
+  };
+
+  const toggleNudges = async (v: boolean) => {
+    setNudges(v);
+    window.localStorage.setItem(NUDGES_KEY, v ? "1" : "0");
+    if (!enabled) return;
+    try {
+      await pushPrefs({ nudges: v });
+    } catch {
+      setError("Couldn't save that — try again.");
     }
   };
 
@@ -148,6 +166,15 @@ function RemindersInner() {
                 {fmtHour(h)}
               </button>
             ))}
+          </div>
+          <div className="mt-3 flex items-center gap-3.5">
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] font-medium">Daily nudges</div>
+              <div className="text-[11px] font-light text-faint">
+                Water, walks, wind-down — two gentle pings a day, different every weekday
+              </div>
+            </div>
+            <Switch checked={nudges} label="daily nudges" onChange={(v) => void toggleNudges(v)} />
           </div>
         </div>
       )}

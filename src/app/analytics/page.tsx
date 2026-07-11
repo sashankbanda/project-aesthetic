@@ -119,7 +119,7 @@ function AnalyticsInner() {
         <ChartNoAxesColumn size={17} className="text-accent2" />
         {hasData ? "Last 7 days — sets per muscle" : "Planned weekly volume (log workouts to see actuals)"}
       </SectionTitle>
-      <Card>
+      <Card data-tour="analytics-volume">
         <HBars data={rows} unit="" color="var(--color-viz1)" />
         <p className="mt-4 text-xs leading-relaxed text-faint">
           Rough guide: 10–20 weekly sets per priority muscle grows it; under 8 maintains.

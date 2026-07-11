@@ -11,6 +11,7 @@ import { Btn, Card, Meter, PageHead, Pill, SectionTitle, Stepper } from "@/compo
 import ActivityTracker from "@/components/activity-tracker";
 import { todayStr, update, useApp } from "@/lib/store";
 import { adviseFor, historyFor, prFor } from "@/lib/overload";
+import { rotatePlanOrder } from "@/lib/plan-engine";
 import { Sparkline } from "@/components/charts";
 import { chime, haptic, unlockAudio } from "@/lib/fx";
 import { ensureSession, sessionId } from "@/lib/workout-session";
@@ -22,6 +23,7 @@ import { analyzeSession, fmtDuration, type SessionTimeReport } from "@/lib/sessi
 import type { AppState, PlannedExercise, WorkoutDay, WorkoutSession } from "@/lib/types";
 import {
   AlertTriangle,
+  ArrowLeftRight,
   Check,
   CheckCheck,
   ChevronDown,
@@ -82,6 +84,7 @@ function WorkoutInner() {
   const [prToast, setPrToast] = useState<{ id: number; name: string; weight: number } | null>(null);
   const gymPrefs = useGymPrefs();
   const [gym, setGym] = useState(false);
+  const [reorder, setReorder] = useState(false);
   const [summary, setSummary] = useState<{
     report: SessionTimeReport | null;
     achievements: string[];
@@ -189,6 +192,14 @@ function WorkoutInner() {
 
       {/* day chips */}
       <div className="-mx-5 mb-5 flex gap-2 overflow-x-auto px-5 pb-1.5 md:mx-0 md:px-0">
+        <button
+          onClick={() => setReorder(true)}
+          aria-label="Shift workout order"
+          data-tour="train-reorder"
+          className="pressable grid w-11 shrink-0 place-items-center self-stretch rounded-2xl border border-line bg-card text-dim"
+        >
+          <ArrowLeftRight size={15} />
+        </button>
         {days.map((d) => (
           <button
             key={d.id}
@@ -222,7 +233,7 @@ function WorkoutInner() {
       ) : (
         <>
           {/* progress strip — check-in / live session clock */}
-          <Card className="mb-5 !p-4">
+          <Card className="mb-5 !p-4" data-tour="train-strip">
             <div className="flex items-center gap-3">
               {session?.startedAt ? (
                 <ElapsedClock startedAt={session.startedAt} stoppedAt={session.completedAt} />
@@ -310,11 +321,41 @@ function WorkoutInner() {
 
       {/* own exercises — stretching, planks, hangs; works on rest days too */}
       <SectionTitle>Own exercises</SectionTitle>
-      <ActivityTracker />
+      <div data-tour="train-own">
+        <ActivityTracker />
+      </div>
 
       {gym && !day.isRest && <GymMode day={day} onExit={() => setGym(false)} />}
 
       {prToast && <PrToast key={prToast.id} name={prToast.name} weight={prToast.weight} onDone={() => setPrToast(null)} />}
+
+      {/* shift order sheet — the everyone-benches-on-Monday fix */}
+      {reorder && (
+        <ActionSheet onClose={() => setReorder(false)}>
+          <p className="px-2 pb-3 text-[12px] font-light leading-relaxed text-dim">
+            Gym crowded on certain days? Pick which workout opens your week — the rest follow in
+            order, so recovery spacing stays intact.
+          </p>
+          {days
+            .filter((d) => !d.isRest)
+            .map((d) => (
+              <SheetBtn
+                key={d.id}
+                icon={<ArrowLeftRight size={17} />}
+                label={`Start the week with ${d.name}`}
+                sub={d.focus}
+                onClick={() => {
+                  update((draft) => {
+                    draft.plan = rotatePlanOrder(draft.plan, d.id);
+                  });
+                  setSelectedDayId(null);
+                  setOpenPick(null);
+                  setReorder(false);
+                }}
+              />
+            ))}
+        </ActionSheet>
+      )}
 
       {/* session options sheet */}
       {sheet && (

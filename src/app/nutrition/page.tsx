@@ -71,7 +71,7 @@ function NutritionInner() {
       />
 
       {/* today's protein — hero tile */}
-      <div className="tile-dark p-6">
+      <div className="tile-dark p-6" data-tour="fuel-hero">
         <div className="dot-texture text-ink" />
         <div className="relative">
           <div className="flex items-start justify-between">

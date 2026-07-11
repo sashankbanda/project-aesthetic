@@ -107,6 +107,7 @@ export async function GET() {
       seconds: a.seconds,
       at: a.at,
     })),
+    challenge: (profile.challenge as SyncState["challenge"] | null) ?? undefined,
     photoMeta: photoMeta.map((p) => ({
       month: p.month,
       angle: p.angle as "front" | "side" | "back",
@@ -136,6 +137,7 @@ export async function PUT(request: Request) {
   const profileData = {
     ...profileCols,
     training: training === undefined ? Prisma.JsonNull : (training as Prisma.InputJsonValue),
+    challenge: s.challenge === undefined ? Prisma.JsonNull : (s.challenge as Prisma.InputJsonValue),
     plan: s.plan as Prisma.InputJsonValue,
     stateModifiedAt: new Date(s.modifiedAt),
   };

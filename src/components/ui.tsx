@@ -76,8 +76,16 @@ export function PageHead({ title, sub, eyebrow }: { title: ReactNode; sub?: Reac
   );
 }
 
-export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`card p-5 ${className}`}>{children}</div>;
+export function Card({
+  children,
+  className = "",
+  ...rest
+}: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={`card p-5 ${className}`} {...rest}>
+      {children}
+    </div>
+  );
 }
 
 export function Stat({

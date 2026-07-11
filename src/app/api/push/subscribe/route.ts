@@ -9,6 +9,8 @@ const SubscriptionSchema = z.object({
   keys: z.object({ p256dh: z.string().max(300), auth: z.string().max(300) }),
   /** preferred reminder hour in IST (0–23) — defaults to 18:00 */
   reminderHour: z.number().int().min(0).max(23).optional(),
+  /** day-part lifestyle nudges on/off */
+  nudges: z.boolean().optional(),
 });
 
 async function requireUserId(): Promise<string | NextResponse> {
@@ -26,11 +28,24 @@ export async function POST(request: Request) {
   const parsed = SubscriptionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "bad subscription" }, { status: 400 });
 
-  const { endpoint, keys, reminderHour } = parsed.data;
+  const { endpoint, keys, reminderHour, nudges } = parsed.data;
   await prisma.pushSubscription.upsert({
     where: { endpoint },
-    create: { userId, endpoint, p256dh: keys.p256dh, auth: keys.auth, reminderHour: reminderHour ?? 18 },
-    update: { userId, p256dh: keys.p256dh, auth: keys.auth, ...(reminderHour !== undefined ? { reminderHour } : {}) },
+    create: {
+      userId,
+      endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      reminderHour: reminderHour ?? 18,
+      nudges: nudges ?? true,
+    },
+    update: {
+      userId,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      ...(reminderHour !== undefined ? { reminderHour } : {}),
+      ...(nudges !== undefined ? { nudges } : {}),
+    },
   });
   return NextResponse.json({ ok: true });
 }

@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Mounted from "@/components/mounted";
-import AppTour from "@/components/app-tour";
 import SyncNudge from "@/components/sync-nudge";
 import { Card, Meter, Pill, SectionTitle, Tile } from "@/components/ui";
 import { FLAME_FRAMES, GlyphMatrix, MOOD_GLYPHS } from "@/components/glyph";
@@ -11,6 +10,7 @@ import { useApp, todayStr, update } from "@/lib/store";
 import { weeklyCompletion, workoutStreak } from "@/lib/overload";
 import { latestMeasurement, proteinForDate } from "@/lib/stats";
 import { EXERCISE_MAP } from "@/lib/seed";
+import { challengeProgress } from "@/lib/challenges";
 import { lastWeekRecap } from "@/lib/recap";
 import type { AppState, WorkoutDay, WorkoutSession } from "@/lib/types";
 import {
@@ -19,6 +19,7 @@ import {
   Check,
   CheckCheck,
   Droplets,
+  Flag,
   Footprints,
   Moon,
   Smile,
@@ -159,6 +160,7 @@ function HomeInner() {
         />
       </div>
 
+      <ChallengeCard />
       <RecapCard />
       <DeloadBanner />
 
@@ -192,8 +194,6 @@ function HomeInner() {
       <div data-tour="checkin">
         <CheckInCard />
       </div>
-
-      <AppTour />
 
       {/* coach focus — where this week's plan actually puts its volume */}
       <SectionTitle>Coach&apos;s focus</SectionTitle>
@@ -232,6 +232,35 @@ function LivePulse({
     <span className="text-[12px] font-medium text-(--ti-dim) tabular-nums">
       {done}/{total} sets{minutes !== null ? ` · ${minutes} min` : ""}
     </span>
+  );
+}
+
+/** Active challenge strip — day count and adherence, tap for detail. */
+function ChallengeCard() {
+  const state = useApp();
+  const progress = challengeProgress(state, todayStr());
+  if (!progress) return null;
+  return (
+    <Link href="/challenges" className="pressable block">
+      <Card className="mt-4 flex items-center gap-3.5 !p-4 border-accent/25">
+        <Flag size={16} className="shrink-0 text-accent" />
+        <div className="min-w-0 flex-1">
+          <div className="text-[13px] font-semibold">
+            {progress.name}
+            {progress.finished && <span className="text-good"> — complete!</span>}
+          </div>
+          <Meter ratio={progress.day / progress.total} className="mt-1.5" color="var(--color-accent)" />
+        </div>
+        <div className="shrink-0 text-right">
+          <div className="text-sm font-bold tabular-nums">
+            {progress.day}<span className="text-faint">/{progress.total}</span>
+          </div>
+          {progress.adherencePct !== null && (
+            <div className="text-[10px] text-faint">{progress.adherencePct}% kept</div>
+          )}
+        </div>
+      </Card>
+    </Link>
   );
 }
 
