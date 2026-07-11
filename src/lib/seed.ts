@@ -752,43 +752,39 @@ const nextMonth = () => {
   return d.toISOString().slice(0, 7);
 };
 
+// generic starter goals — the plan wizard replaces these with
+// goal-specific ones; only explore-without-setup users keep them
 export const DEFAULT_ROADMAP: RoadmapGoal[] = [
-  { id: "m1-bench", month: thisMonth(), label: "Bench Press 40 kg × 8", done: false },
-  { id: "m1-pulldown", month: thisMonth(), label: "Lat Pulldown 45 kg × 8", done: false },
-  { id: "m1-fat", month: thisMonth(), label: "Lose 1 kg of fat (scale + mirror)", done: false },
-  { id: "m1-waist", month: thisMonth(), label: "Waist −2 cm", done: false },
+  { id: "m1-first-workouts", month: thisMonth(), label: "Complete your first 10 workouts", done: false },
   { id: "m1-photos", month: thisMonth(), label: "Take first progress photos", done: false },
-  { id: "m2-lateral", month: nextMonth(), label: "Lateral raises 3×15 @ 10 kg", done: false },
-  { id: "m2-pullup", month: nextMonth(), label: "First clean bodyweight pull-up", done: false },
-  { id: "m2-incline", month: nextMonth(), label: "Incline DB press 24 kg × 10", done: false },
-  { id: "m2-waist", month: nextMonth(), label: "Waist −1.5 cm more", done: false },
+  { id: "m1-protein", month: thisMonth(), label: "Hit your protein goal 5 days in a row", done: false },
+  { id: "m2-consistency", month: nextMonth(), label: "A full month without missing a planned day", done: false },
+  { id: "m2-progress", month: nextMonth(), label: "Add weight or reps on every main lift", done: false },
 ];
 
 export const DEFAULT_PROFILE: Profile = {
   name: "Athlete",
   heightCm: 172,
   birthYear: 2000,
-  phase: "Body Recomposition",
-  targetWeightKg: 67,
-  targetBodyFatPct: 12,
+  phase: "General Fitness",
+  targetWeightKg: 70,
+  targetBodyFatPct: 15,
   proteinGoalG: 120,
   waterGoalMl: 3000,
   stepsGoal: 8000,
   sleepGoalH: 8,
-  nextMilestone: "Bench Press 60 kg × 8",
+  nextMilestone: "Complete your first 10 workouts",
 };
 
 export function createInitialState(): AppState {
-  const today = new Date().toISOString().slice(0, 10);
   return {
     version: 1,
     onboarded: false,
     profile: DEFAULT_PROFILE,
     plan: DEFAULT_PLAN,
     sessions: [],
-    measurements: [
-      { date: today, weightKg: 71, bodyFatPct: 20, waistCm: 84, chestCm: 96, armsCm: 32, shouldersCm: 112, thighCm: 54, calfCm: 36 },
-    ],
+    // nothing pre-filled: the wizard seeds the first weight, everything else is theirs to log
+    measurements: [],
     foodLog: [],
     recovery: [],
     journal: [],

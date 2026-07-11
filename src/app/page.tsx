@@ -26,22 +26,8 @@ import {
   X,
 } from "lucide-react";
 
-// the original hand-tuned lean-aesthetic priorities — used only for
-// legacy profiles that never ran the plan wizard
-const PRIORITIES = [
-  "Upper Chest",
-  "Side Delts",
-  "Lats",
-  "Rear Delts",
-  "Arms",
-  "Upper Back",
-  "Waist Reduction",
-  "Legs",
-];
-
-/** wizard users: focus = where their actual plan puts its weekly sets */
+/** coach's focus = where the user's actual plan puts its weekly sets */
 function prioritiesFor(state: AppState): string[] {
-  if (!state.profile.training) return PRIORITIES;
   const sets = new Map<string, number>();
   for (const day of state.plan) {
     for (const pe of day.exercises) {
@@ -161,7 +147,7 @@ function HomeInner() {
           value={m?.weightKg !== undefined ? m.weightKg : "-"}
           cell={6}
           unit="kg"
-          sub={`→ ${profile.targetWeightKg} kg`}
+          sub={m?.weightKg !== undefined ? `→ ${profile.targetWeightKg} kg` : "log it in My Body"}
         />
         <Tile
           tone="dark"

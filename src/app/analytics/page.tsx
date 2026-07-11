@@ -48,12 +48,21 @@ function plannedVolume(state: ReturnType<typeof useApp>): Map<MuscleGroup, numbe
   return vol;
 }
 
-const KEY_LIFTS = [
-  { id: "flat-bb-bench", label: "Bench Press" },
-  { id: "lat-pulldown", label: "Lat Pulldown" },
-  { id: "squat", label: "Squat" },
-  { id: "incline-db-press", label: "Incline DB Press" },
-];
+/** the user's own most-trained weighted lifts — no hardcoded lift list */
+function keyLifts(state: ReturnType<typeof useApp>): { id: string; label: string }[] {
+  const counts = new Map<string, number>();
+  for (const s of state.sessions) {
+    for (const l of s.logs) {
+      if (l.sets.some((x) => x.done && x.weight > 0)) {
+        counts.set(l.exerciseId, (counts.get(l.exerciseId) ?? 0) + 1);
+      }
+    }
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([id]) => ({ id, label: EXERCISE_MAP[id]?.name ?? id }));
+}
 
 export default function AnalyticsPage() {
   return (
@@ -114,7 +123,7 @@ function AnalyticsInner() {
         <HBars data={rows} unit="" color="var(--color-viz1)" />
         <p className="mt-4 text-xs leading-relaxed text-faint">
           Rough guide: 10–20 weekly sets per priority muscle grows it; under 8 maintains.
-          Your weak points (upper chest, side delts, lats, rear delts) should sit near the top of this chart.
+          The muscles your plan prioritizes should sit near the top of this chart.
         </p>
       </Card>
 
@@ -122,22 +131,26 @@ function AnalyticsInner() {
       <ConsistencyGrid />
       <RecentSessions />
 
-      <SectionTitle>
-        <Trophy size={17} className="text-accent2" /> Key lift PRs
-      </SectionTitle>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {KEY_LIFTS.map(({ id, label }) => {
-          const pr = prFor(state, id);
-          return (
-            <Stat
-              key={id}
-              label={label}
-              value={pr && pr.weight > 0 ? `${pr.weight} kg` : "—"}
-              sub={pr && pr.weight > 0 ? `× ${pr.reps} reps` : "no lifts logged yet"}
-            />
-          );
-        })}
-      </div>
+      {keyLifts(state).length > 0 && (
+        <>
+          <SectionTitle>
+            <Trophy size={17} className="text-accent2" /> Key lift PRs
+          </SectionTitle>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {keyLifts(state).map(({ id, label }) => {
+              const pr = prFor(state, id);
+              return (
+                <Stat
+                  key={id}
+                  label={label}
+                  value={pr && pr.weight > 0 ? `${pr.weight} kg` : "—"}
+                  sub={pr && pr.weight > 0 ? `× ${pr.reps} reps` : "no lifts logged yet"}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
     </>
   );
 }
