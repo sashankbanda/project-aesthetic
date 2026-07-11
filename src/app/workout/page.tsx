@@ -9,7 +9,8 @@ import ExerciseMedia from "@/components/exercise-media";
 import HomeAlt from "@/components/home-alt";
 import { Btn, Card, Meter, PageHead, Pill, SectionTitle, Stepper } from "@/components/ui";
 import ActivityTracker from "@/components/activity-tracker";
-import { todayStr, update, useApp } from "@/lib/store";
+import { getState, todayStr, update, useApp } from "@/lib/store";
+import { buildWorkoutReceipt, shareCard } from "@/lib/share-card";
 import { adviseFor, historyFor, prFor } from "@/lib/overload";
 import { rotatePlanOrder } from "@/lib/plan-engine";
 import { Sparkline } from "@/components/charts";
@@ -36,6 +37,7 @@ import {
   Play,
   Repeat,
   RotateCcw,
+  Share2,
   StickyNote,
   Target,
   Timer,
@@ -627,9 +629,24 @@ function SessionSummary({
           </div>
         )}
 
-        <Btn variant="primary" className="mt-5 w-full" onClick={onClose}>
-          Done
-        </Btn>
+        <div className="mt-5 flex gap-2.5">
+          <Btn
+            variant="ghost"
+            className="flex-1"
+            onClick={() => {
+              const state = getState();
+              const day = state.plan.find((d) => d.id === session.dayId);
+              void buildWorkoutReceipt(state, session, day).then((blob) =>
+                shareCard(blob, `workout-${session.date}.png`, "Paid in full — in sweat."),
+              );
+            }}
+          >
+            <Share2 size={15} /> Share
+          </Btn>
+          <Btn variant="primary" className="flex-1" onClick={onClose}>
+            Done
+          </Btn>
+        </div>
         <button
           onClick={onReopen}
           className="pressable mx-auto mt-3 flex items-center gap-1.5 text-xs font-semibold text-faint"

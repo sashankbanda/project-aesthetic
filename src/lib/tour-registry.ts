@@ -72,6 +72,12 @@ export const TOUR_STOPS: TourStop[] = [
   },
   // ---------- Progress ----------
   {
+    key: "share-receipt",
+    path: "/analytics",
+    title: "Print the receipt",
+    text: "Any workout becomes a shareable gym receipt — itemized lifts, PRs starred, volume paid in full.",
+  },
+  {
     key: "analytics-volume",
     path: "/analytics",
     title: "Where your effort goes",

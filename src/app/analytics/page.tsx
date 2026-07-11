@@ -4,11 +4,12 @@ import ProgressNav from "@/components/progress-nav";
 import { MuscleHeatMap } from "@/components/muscle-map";
 import { Card, PageHead, SectionTitle, Stat } from "@/components/ui";
 import { HBars } from "@/components/charts";
-import { ChartNoAxesColumn, Flame, HeartPulse, Timer, Trophy } from "lucide-react";
+import { ChartNoAxesColumn, Flame, HeartPulse, Share2, Timer, Trophy } from "lucide-react";
 import { todayStr, useApp } from "@/lib/store";
 import { EXERCISE_MAP } from "@/lib/seed";
 import { completedDates, prFor } from "@/lib/overload";
 import { recentWeeks, recoveryHeatNow } from "@/lib/recap";
+import { buildWorkoutReceipt, shareCard } from "@/lib/share-card";
 import { analyzeSession, fmtDuration } from "@/lib/session-time";
 import type { MuscleGroup } from "@/lib/types";
 
@@ -268,6 +269,18 @@ function RecentSessions() {
               ) : (
                 <span className="text-[11px] text-faint">no check-in</span>
               )}
+              <button
+                onClick={() =>
+                  void buildWorkoutReceipt(state, s, day).then((blob) =>
+                    shareCard(blob, `workout-${s.date}.png`, "Paid in full — in sweat."),
+                  )
+                }
+                aria-label="share this workout as a receipt"
+                data-tour="share-receipt"
+                className="pressable grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line text-faint"
+              >
+                <Share2 size={14} />
+              </button>
             </div>
           );
         })}
