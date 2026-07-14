@@ -124,6 +124,14 @@ function ExerciseEntry({ ex }: { ex: Exercise }) {
       </button>
       {open && (
         <div className="grid gap-2.5 border-t border-line/40 px-4 pb-4 pt-3.5">
+          <a
+            href={ex.videoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="pressable flex items-center justify-center gap-2 rounded-full border border-line bg-card2 py-3 text-[13px] font-medium"
+          >
+            <Play size={15} /> Watch video demo
+          </a>
           <MuscleMap primary={ex.primary} secondary={ex.secondary} />
           <ExerciseMedia ex={ex} />
           <Info icon={<Check size={12} />} title="Form cues" items={ex.cues} />
@@ -136,14 +144,6 @@ function ExerciseEntry({ ex }: { ex: Exercise }) {
             </div>
             <p className="text-[13px] text-dim">{ex.progression}</p>
           </div>
-          <a
-            href={ex.videoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="pressable flex items-center gap-1.5 text-xs font-semibold text-accent2"
-          >
-            <Play size={13} /> Watch video demo
-          </a>
         </div>
       )}
     </div>
