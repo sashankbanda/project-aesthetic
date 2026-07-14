@@ -45,6 +45,7 @@ import {
   TrendingUp,
   Trophy,
   Undo2,
+  X,
 } from "lucide-react";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -802,8 +803,19 @@ function ExerciseCard({
   const state = useApp();
   const [showInfo, setShowInfo] = useState(false);
   const [editingSet, setEditingSet] = useState<number | null>(null);
+  // set stopwatch: start before the set, stop via ✓ — real duration gets recorded
+  const [timing, setTiming] = useState<{ setIdx: number; startedAt: number } | null>(null);
+  const [elapsed, setElapsed] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const mountedRef = useRef(false);
+
+  useEffect(() => {
+    if (!timing) return;
+    const tick = () => setElapsed(Math.floor((Date.now() - timing.startedAt) / 1000));
+    tick();
+    const t = setInterval(tick, 500);
+    return () => clearInterval(t);
+  }, [timing]);
   const ex = EXERCISE_MAP[planned.exerciseId];
   const log = session?.logs.find((l) => l.exerciseId === planned.exerciseId);
   const advice = adviseFor(state, planned, { excludeSessionId: session?.id });
@@ -820,7 +832,10 @@ function ExerciseCard({
     if (open) cardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [open]);
 
-  const patchSet = (setIdx: number, patch: Partial<{ weight: number; reps: number; done: boolean; at: string }>) => {
+  const patchSet = (
+    setIdx: number,
+    patch: Partial<{ weight: number; reps: number; done: boolean; at: string; durationS: number }>,
+  ) => {
     update((draft) => {
       const s = ensureSession(draft, day);
       const l = s.logs.find((x) => x.exerciseId === planned.exerciseId);
@@ -834,7 +849,16 @@ function ExerciseCard({
   const toggleSet = (setIdx: number) => {
     const row = log?.sets[setIdx];
     const willBeDone = !(row?.done ?? false);
-    patchSet(setIdx, { done: willBeDone, ...(willBeDone ? { at: new Date().toISOString() } : {}) });
+    const durationS =
+      willBeDone && timing?.setIdx === setIdx
+        ? Math.min(3600, Math.max(1, Math.round((Date.now() - timing.startedAt) / 1000)))
+        : undefined;
+    if (timing?.setIdx === setIdx) setTiming(null);
+    patchSet(setIdx, {
+      done: willBeDone,
+      ...(willBeDone ? { at: new Date().toISOString() } : {}),
+      ...(durationS !== undefined ? { durationS } : {}),
+    });
     if (willBeDone) {
       haptic();
       unlockAudio(); // user gesture — arms the completion chime for iOS
@@ -916,8 +940,9 @@ function ExerciseCard({
               const reps = row?.reps ?? planned.repsMin;
               const done = row?.done ?? false;
               const editing = editingSet === si;
+              const isTiming = timing?.setIdx === si;
               return (
-                <div key={si} className={`rounded-2xl border transition ${done ? "border-ink/25 bg-ink/[0.04]" : "border-line bg-elev"}`}>
+                <div key={si} className={`rounded-2xl border transition ${done ? "border-ink/25 bg-ink/[0.04]" : isTiming ? "border-accent/40 bg-accent/[0.05]" : "border-line bg-elev"}`}>
                   <div className="flex items-center gap-3 px-3.5 py-2">
                     <span className="label-mono w-11 text-[9px] text-faint">Set {si + 1}</span>
                     <button
@@ -927,15 +952,41 @@ function ExerciseCard({
                       {ex.isBodyweight && weight === 0 ? "BW" : `${weight} kg`}
                       <span className="mx-1.5 text-faint">×</span>
                       {reps}
-                      <span className="ml-2 text-[10px] font-medium text-faint">{editing ? "done" : "edit"}</span>
+                      {isTiming ? (
+                        <span className="ml-2 text-[12px] font-bold text-accent tabular-nums">
+                          {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
+                        </span>
+                      ) : done && row?.durationS ? (
+                        <span className="ml-2 text-[10px] font-medium text-faint">{row.durationS}s</span>
+                      ) : (
+                        <span className="ml-2 text-[10px] font-medium text-faint">{editing ? "done" : "edit"}</span>
+                      )}
                     </button>
+                    {!done && (
+                      <button
+                        aria-label={isTiming ? `cancel set ${si + 1} stopwatch` : `start set ${si + 1} stopwatch`}
+                        data-tour={index === 0 && si === 0 ? "train-set-timer" : undefined}
+                        onClick={() => {
+                          unlockAudio();
+                          haptic();
+                          setTiming(isTiming ? null : { setIdx: si, startedAt: Date.now() });
+                        }}
+                        className={`pressable grid h-11 w-11 shrink-0 place-items-center rounded-full border transition ${
+                          isTiming ? "border-accent/50 bg-accent/15 text-accent" : "border-line bg-card text-faint"
+                        }`}
+                      >
+                        {isTiming ? <X size={16} strokeWidth={2.5} /> : <Timer size={16} />}
+                      </button>
+                    )}
                     <button
-                      aria-label={`Set ${si + 1} ${done ? "done" : "not done"}`}
+                      aria-label={`Set ${si + 1} ${done ? "done" : isTiming ? "stop and finish" : "not done"}`}
                       onClick={() => toggleSet(si)}
                       className={`pressable grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 transition ${
                         done
                           ? "border-transparent bg-ink text-bg"
-                          : "border-line bg-card text-faint"
+                          : isTiming
+                            ? "border-accent bg-accent text-white"
+                            : "border-line bg-card text-faint"
                       }`}
                     >
                       <Check size={19} strokeWidth={3} />

@@ -41,15 +41,20 @@ export function analyzeSession(
   if (!session.startedAt) return null;
   const start = Date.parse(session.startedAt);
 
-  // ticked sets with timestamps, in order
-  const ticks: { t: number; restS: number }[] = [];
+  // ticked sets with timestamps, in order — timed sets carry their REAL duration
+  const ticks: { t: number; restS: number; execS: number }[] = [];
   let setsDone = 0;
   for (const log of session.logs) {
     const planned = day?.exercises.find((e) => e.exerciseId === log.exerciseId);
     for (const s of log.sets) {
       if (!s.done) continue;
       setsDone++;
-      if (s.at) ticks.push({ t: Date.parse(s.at), restS: planned?.restSeconds ?? 90 });
+      if (s.at)
+        ticks.push({
+          t: Date.parse(s.at),
+          restS: planned?.restSeconds ?? 90,
+          execS: s.durationS ?? EXECUTE_S,
+        });
     }
   }
   ticks.sort((a, b) => a.t - b.t);
@@ -86,8 +91,8 @@ export function analyzeSession(
   for (const tick of ticks) {
     const gap = Math.max(0, (tick.t - prevT) / 1000);
     const restPart = Math.min(gap, prevAllowanceRest);
-    const liftPart = Math.min(Math.max(gap - prevAllowanceRest, 0), EXECUTE_S);
-    const wastePart = Math.max(gap - prevAllowanceRest - EXECUTE_S, 0);
+    const liftPart = Math.min(Math.max(gap - prevAllowanceRest, 0), tick.execS);
+    const wastePart = Math.max(gap - prevAllowanceRest - tick.execS, 0);
     if (firstGap) {
       // warm-up window is purposeful work, not rest
       lift += restPart + liftPart;

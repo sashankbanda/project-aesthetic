@@ -52,6 +52,7 @@ export const SetLogSchema = z.object({
   reps: z.number().int().min(0).max(1000),
   done: z.boolean(),
   at: z.string().optional(),
+  durationS: z.number().min(0).max(3600).optional(),
 });
 
 export const ExerciseLogSchema = z.object({

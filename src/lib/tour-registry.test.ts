@@ -26,6 +26,8 @@ function collectTargets(dir: string, found: Set<string>) {
     for (const m of text.matchAll(/data-tour="([^"]+)"/g)) {
       if (!m[1].includes("${")) found.add(m[1]);
     }
+    // conditional attributes:  data-tour={cond ? "key" : undefined}
+    for (const m of text.matchAll(/data-tour=\{[^}]*?"([^"]+)"/g)) found.add(m[1]);
     // registry-style props (the tab bar):  tour: "key"
     for (const m of text.matchAll(/tour: "([^"]+)"/g)) found.add(m[1]);
   }

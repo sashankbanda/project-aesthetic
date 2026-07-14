@@ -52,6 +52,12 @@ export const TOUR_STOPS: TourStop[] = [
     text: "Check in to start the clock, watch sets tick up, and use ⋯ to undo anything done by mistake.",
   },
   {
+    key: "train-set-timer",
+    path: "/workout",
+    title: "Time the set itself",
+    text: "Tap the stopwatch, lift, then tap ✓ — the set's real duration is recorded and the rest timer starts on its own.",
+  },
+  {
     key: "train-reorder",
     path: "/workout",
     title: "Dodge the Monday crowd",

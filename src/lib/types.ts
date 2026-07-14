@@ -163,6 +163,8 @@ export interface SetLog {
   done: boolean;
   /** ISO timestamp of when the set was ticked — powers time analytics */
   at?: string;
+  /** actual set duration in seconds, when timed with the set stopwatch */
+  durationS?: number;
 }
 
 export interface ExerciseLog {

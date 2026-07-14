@@ -91,11 +91,18 @@ export default function GymMode({ day, onExit }: { day: WorkoutDay; onExit: () =
   useEffect(() => () => stopSpeaking(), []);
 
   // ---------- the one big action ----------
+  // gym mode knows when lifting starts (mode entry / rest end) → real set durations for free
+  const liftStartRef = useRef(0);
+  useEffect(() => {
+    liftStartRef.current = Date.now();
+  }, []);
+
   const tapRef = useRef<() => void>(() => {});
   const tapDone = () => {
     if (complete || !planned) return;
     unlockAudio();
     haptic();
+    const durationS = Math.min(3600, Math.max(1, Math.round((Date.now() - liftStartRef.current) / 1000)));
     const isLastOverall =
       exIdx === day.exercises.length - 1 && setIdx === planned.workingSets - 1;
     update((draft) => {
@@ -106,6 +113,7 @@ export default function GymMode({ day, onExit }: { day: WorkoutDay; onExit: () =
       if (target) {
         target.done = true;
         target.at = new Date().toISOString();
+        target.durationS = durationS;
       }
     });
     if (isLastOverall) {
@@ -193,6 +201,7 @@ export default function GymMode({ day, onExit }: { day: WorkoutDay; onExit: () =
 
   const restDone = () => {
     setRestUntil(null);
+    liftStartRef.current = Date.now(); // the next set's clock starts when rest ends
     chime();
     haptic([250, 120, 250]);
     if (voiceOn && ex) speak("Go.");
