@@ -55,6 +55,8 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const secondsSince = (startedAt: number) =>
   Math.min(3600, Math.max(1, Math.round((Date.now() - startedAt) / 1000)));
 
+const DIFF_LABEL = { 1: "beginner", 2: "intermediate", 3: "advanced" } as const;
+
 export default function WorkoutPage() {
   return (
     <Mounted>
@@ -93,8 +95,9 @@ function WorkoutInner() {
   const gymPrefs = useGymPrefs();
   const [gym, setGym] = useState(false);
   const [reorder, setReorder] = useState(false);
-  // index of the exercise slot being swapped (machine taken, etc.)
+  // index of the exercise slot being swapped (machine taken, etc.) + which candidate is previewed
   const [swapIdx, setSwapIdx] = useState<number | null>(null);
+  const [swapPreview, setSwapPreview] = useState<string | null>(null);
   const [summary, setSummary] = useState<{
     report: SessionTimeReport | null;
     achievements: string[];
@@ -301,7 +304,10 @@ function WorkoutInner() {
               onAllDone={() => setOpenPick(null)} // flow: auto-advance to the next unfinished exercise
               onPr={(name, weight) => setPrToast({ id: Date.now(), name, weight })}
               onSetDone={(restS, name) => startRest(restS, name)}
-              onSwap={() => setSwapIdx(i)}
+              onSwap={() => {
+                setSwapIdx(i);
+                setSwapPreview(null);
+              }}
             />
           ))}
 
@@ -368,12 +374,18 @@ function WorkoutInner() {
         </ActionSheet>
       )}
 
-      {/* swap sheet — this machine is taken, give me the same movement elsewhere */}
+      {/* swap sheet — this machine is taken, give me the same movement elsewhere.
+          Tap a row to PREVIEW (muscles, cues, demo) — swapping is an explicit second tap. */}
       {swapIdx !== null && day.exercises[swapIdx] && (
-        <ActionSheet onClose={() => setSwapIdx(null)}>
+        <ActionSheet
+          onClose={() => {
+            setSwapIdx(null);
+            setSwapPreview(null);
+          }}
+        >
           <p className="px-2 pb-3 text-[12px] font-light leading-relaxed text-dim">
-            Station taken? These hit the same movement with your equipment — your plan updates, and
-            you can swap back the same way anytime.
+            Station taken? These hit the same movement with your equipment. Tap one to preview it —
+            your plan only changes when you confirm, and you can swap back the same way anytime.
           </p>
           {(() => {
             const slot = day.exercises[swapIdx];
@@ -388,31 +400,68 @@ function WorkoutInner() {
                   No alternative covers this movement with your equipment.
                 </p>
               );
+            const applySwap = (newId: string) => {
+              const oldId = slot.exerciseId;
+              update((draft) => {
+                const d = draft.plan.find((x) => x.id === day.id);
+                const s = d?.exercises[swapIdx];
+                if (!d || !s) return;
+                s.exerciseId = newId;
+                // today's untouched pre-filled log goes with it; done sets stay
+                const sess = draft.sessions.find((x) => x.id === sessionId(todayStr(), day.id));
+                if (sess) {
+                  sess.logs = sess.logs.filter(
+                    (l) => l.exerciseId !== oldId || l.sets.some((x) => x.done),
+                  );
+                  ensureSession(draft, d);
+                }
+              });
+              setSwapIdx(null);
+              setSwapPreview(null);
+            };
             return candidates.map((e) => (
-              <SheetBtn
-                key={e.id}
-                icon={<ArrowLeftRight size={17} />}
-                label={e.name}
-                sub={`${e.primary} · ${e.equipment}`}
-                onClick={() => {
-                  const oldId = slot.exerciseId;
-                  update((draft) => {
-                    const d = draft.plan.find((x) => x.id === day.id);
-                    const s = d?.exercises[swapIdx];
-                    if (!d || !s) return;
-                    s.exerciseId = e.id;
-                    // today's untouched pre-filled log goes with it; done sets stay
-                    const sess = draft.sessions.find((x) => x.id === sessionId(todayStr(), day.id));
-                    if (sess) {
-                      sess.logs = sess.logs.filter(
-                        (l) => l.exerciseId !== oldId || l.sets.some((x) => x.done),
-                      );
-                      ensureSession(draft, d);
-                    }
-                  });
-                  setSwapIdx(null);
-                }}
-              />
+              <div key={e.id}>
+                <SheetBtn
+                  icon={
+                    <ChevronDown
+                      size={17}
+                      className={`transition-transform ${swapPreview === e.id ? "rotate-180" : ""}`}
+                    />
+                  }
+                  label={e.name}
+                  sub={`${e.primary} · ${e.equipment} · ${DIFF_LABEL[e.difficulty ?? 2]}`}
+                  onClick={() => setSwapPreview(swapPreview === e.id ? null : e.id)}
+                />
+                {swapPreview === e.id && (
+                  <div className="border-t border-line/40 bg-elev px-4 py-4">
+                    <MuscleMap primary={e.primary} secondary={e.secondary} />
+                    <ul className="mt-3 grid gap-1.5">
+                      {e.cues.slice(0, 2).map((cue) => (
+                        <li key={cue} className="flex items-start gap-2 text-[12px] leading-snug text-dim">
+                          <Check size={12} className="mt-0.5 shrink-0 text-accent2" />
+                          {cue}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-3.5 flex gap-2.5">
+                      <a
+                        href={e.videoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="pressable flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line bg-card2 py-2.5 text-[13px] font-medium"
+                      >
+                        <Play size={14} /> Watch demo
+                      </a>
+                      <button
+                        onClick={() => applySwap(e.id)}
+                        className="pressable flex flex-1 items-center justify-center gap-1.5 rounded-full bg-grad py-2.5 text-[13px] font-bold text-white shadow-lg shadow-accent/30"
+                      >
+                        <ArrowLeftRight size={14} /> Swap to this
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ));
           })()}
         </ActionSheet>
@@ -469,7 +518,9 @@ function ActionSheet({ children, onClose }: { children: React.ReactNode; onClose
     <div className="fixed inset-0 z-[100] flex items-end justify-center md:items-center">
       <button aria-label="close" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={onClose} />
       <div className="rise-in pb-safe relative w-full max-w-md p-4">
-        <div className="card divide-y divide-line/40 overflow-hidden !rounded-3xl">{children}</div>
+        <div className="card max-h-[70dvh] divide-y divide-line/40 overflow-y-auto overscroll-contain !rounded-3xl">
+          {children}
+        </div>
         <button
           onClick={onClose}
           className="pressable card mt-2.5 w-full !rounded-3xl py-3.5 text-center text-[15px] font-bold text-accent2"
