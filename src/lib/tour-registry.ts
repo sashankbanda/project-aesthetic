@@ -35,7 +35,7 @@ export const TOUR_STOPS: TourStop[] = [
     path: "/",
     quick: true,
     title: "Your vitals",
-    text: "Streak, weight and protein at a glance. The streak turns orange — keep it alive.",
+    text: "Streak, weight and protein at a glance. Every 14 clean days banks a 🛡 shield that absorbs one missed day — a sick day won't erase two months.",
   },
   {
     key: "checkin",
@@ -58,6 +58,12 @@ export const TOUR_STOPS: TourStop[] = [
     text: "Tap the stopwatch, lift, then tap ✓ — the set's real duration is recorded and the rest timer starts on its own.",
   },
   {
+    key: "train-swap",
+    path: "/workout",
+    title: "Station taken?",
+    text: "Swap any exercise for one that hits the same movement with your equipment — and swap back the same way.",
+  },
+  {
     key: "train-reorder",
     path: "/workout",
     title: "Dodge the Monday crowd",
@@ -77,6 +83,12 @@ export const TOUR_STOPS: TourStop[] = [
     text: "Hit the protein target and nutrition is 90% handled. One-tap foods below, budget-friendly gap fillers included.",
   },
   // ---------- Progress ----------
+  {
+    key: "photos-compare",
+    path: "/photos",
+    title: "Day 1 vs day 90",
+    text: "Pick any two months and drag the slider — the photos (which never leave your device) tell the truth the mirror hides.",
+  },
   {
     key: "share-receipt",
     path: "/analytics",

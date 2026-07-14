@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -84,6 +85,11 @@ export function doImport() {
 export default function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const active = activeTab(pathname);
+
+  // offline shell — register the SW for everyone, not just push subscribers
+  useEffect(() => {
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
 
   return (
     <div className="flex min-h-dvh">

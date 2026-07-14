@@ -4,7 +4,7 @@
 // what to do next session. The future AI coach augments this,
 // it never replaces it.
 // ============================================================
-import type { AppState, ExerciseLog, PlannedExercise, WorkoutSession } from "./types";
+import type { AppState, Exercise, ExerciseLog, PlannedExercise, WorkoutSession } from "./types";
 import { EXERCISE_MAP } from "./seed";
 
 export interface OverloadAdvice {
@@ -121,33 +121,87 @@ export function adviseFor(
   };
 }
 
+/**
+ * Warm-up ramp toward a working weight — bar first for barbell lifts,
+ * then submaximal steps rounded to the exercise's plate/pin increment.
+ * Empty when there's nothing meaningful to ramp (bodyweight, no weight).
+ */
+export function warmupRamp(ex: Exercise, workingKg: number): { kg: number; reps: number }[] {
+  if (!workingKg || workingKg <= 0 || ex.isBodyweight) return [];
+  const barbell = ex.equipment === "Barbell" || ex.equipment === "Smith";
+  const inc = barbell ? 2.5 : ex.incrementKg || 2.5;
+  const at = (f: number) => Math.round((workingKg * f) / inc) * inc;
+  const steps = barbell
+    ? [{ kg: 20, reps: 10 }, { kg: at(0.5), reps: 5 }, { kg: at(0.75), reps: 3 }]
+    : [{ kg: at(0.5), reps: 10 }, { kg: at(0.75), reps: 5 }];
+  // strictly ascending, under the working weight, never below an empty bar
+  const out: { kg: number; reps: number }[] = [];
+  for (const s of steps) {
+    if (s.kg <= 0 || s.kg >= workingKg) continue;
+    if (barbell && s.kg < 20) continue;
+    if (out.length > 0 && s.kg <= out[out.length - 1].kg) continue;
+    out.push(s);
+  }
+  return out;
+}
+
 // ---------- streak / completion ----------
 export function completedDates(sessions: WorkoutSession[]): Set<string> {
   return new Set(sessions.filter((s) => s.completedAt).map((s) => s.date));
 }
 
+/** Streak shields: earn one per 14 consecutive completed training days, hold at most this many. */
+export const SHIELD_EVERY = 14;
+export const SHIELD_CAP = 2;
+
+export interface StreakInfo {
+  streak: number;
+  /** unspent shields — each silently absorbs one missed training day */
+  shields: number;
+}
+
 /**
- * Streak = consecutive planned training days completed, counting back
- * from today (rest days don't break it; today doesn't break it if
- * still pending).
+ * Streak = consecutive planned training days completed, counting up to
+ * today (rest days don't break it; today doesn't break it if still
+ * pending). Shields are streak insurance: every 14 clean days banks
+ * one (max 2), and a missed training day spends a shield instead of
+ * killing the streak — one sick day no longer erases two months.
  */
-export function workoutStreak(state: AppState): number {
+export function streakInfo(state: AppState, today: string = localDateStr(new Date())): StreakInfo {
   const done = completedDates(state.sessions);
   const restDays = new Set(state.plan.filter((d) => d.isRest).map((d) => d.weekday));
+  if (done.size === 0) return { streak: 0, shields: 0 };
+
+  // walk forward from the first completed day (bounded — 800 days is
+  // beyond any realistic unbroken history)
+  const first = [...done].sort()[0];
+  const cursor = new Date(first + "T12:00:00");
   let streak = 0;
-  const cursor = new Date();
-  for (let i = 0; i < 400; i++) {
-    const dateStr = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`;
-    const isRest = restDays.has(cursor.getDay());
+  let shields = 0;
+  let cleanRun = 0;
+  for (let i = 0; i < 800; i++) {
+    const dateStr = localDateStr(cursor);
+    if (dateStr > today) break;
     if (done.has(dateStr)) {
       streak++;
-    } else if (!isRest) {
-      // today still in progress doesn't break the streak
-      if (i !== 0) break;
+      cleanRun++;
+      if (cleanRun % SHIELD_EVERY === 0 && shields < SHIELD_CAP) shields++;
+    } else if (!restDays.has(cursor.getDay()) && dateStr !== today) {
+      cleanRun = 0; // a miss breaks the earn run either way
+      if (shields > 0) shields--;
+      else streak = 0;
     }
-    cursor.setDate(cursor.getDate() - 1);
+    cursor.setDate(cursor.getDate() + 1);
   }
-  return streak;
+  return { streak, shields };
+}
+
+export function workoutStreak(state: AppState): number {
+  return streakInfo(state).streak;
+}
+
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /** completed / planned sessions for the current week (Mon-based). */

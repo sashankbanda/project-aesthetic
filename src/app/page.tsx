@@ -3,11 +3,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Mounted from "@/components/mounted";
 import SyncNudge from "@/components/sync-nudge";
+import InstallNudge from "@/components/install-nudge";
 import { Card, Meter, Pill, SectionTitle, Tile } from "@/components/ui";
 import { FLAME_FRAMES, GlyphMatrix, MOOD_GLYPHS } from "@/components/glyph";
 import { Sparkline } from "@/components/charts";
 import { useApp, todayStr, update } from "@/lib/store";
-import { weeklyCompletion, workoutStreak } from "@/lib/overload";
+import { streakInfo, weeklyCompletion } from "@/lib/overload";
 import { latestMeasurement, proteinForDate } from "@/lib/stats";
 import { EXERCISE_MAP } from "@/lib/seed";
 import { challengeProgress } from "@/lib/challenges";
@@ -68,7 +69,7 @@ function HomeInner() {
   const weekday = new Date().getDay();
   const todayPlan = state.plan.find((d) => d.weekday === weekday);
   const todaySession = state.sessions.find((s) => s.date === today);
-  const streak = workoutStreak(state);
+  const { streak, shields } = streakInfo(state);
   const week = weeklyCompletion(state);
   const protein = proteinForDate(state, today);
 
@@ -136,7 +137,7 @@ function HomeInner() {
           label="Streak"
           value={streak}
           cell={6}
-          sub={streak === 1 ? "day" : "days"}
+          sub={`${streak === 1 ? "day" : "days"}${shields > 0 ? ` · ${shields}🛡` : ""}`}
         >
           <div className="absolute -top-1 right-0">
             <GlyphMatrix frames={FLAME_FRAMES} fps={4} cell={3.5} color="#ffffff" />
@@ -160,6 +161,7 @@ function HomeInner() {
         />
       </div>
 
+      <InstallNudge />
       <ChallengeCard />
       <RecapCard />
       <DeloadBanner />

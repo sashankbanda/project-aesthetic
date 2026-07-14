@@ -17,23 +17,22 @@ export function ensureSession(draft: AppState, day: WorkoutDay): WorkoutSession 
   const id = sessionId(date, day.id);
   let session = draft.sessions.find((s) => s.id === id);
   if (!session) {
-    session = {
-      id,
-      date,
-      dayId: day.id,
-      logs: day.exercises.map((pe) => {
-        const advice = adviseFor(draft, pe);
-        return {
-          exerciseId: pe.exerciseId,
-          sets: Array.from({ length: pe.workingSets }, () => ({
-            weight: advice.suggestedWeight ?? 0,
-            reps: pe.repsMin,
-            done: false,
-          })),
-        };
-      }),
-    };
+    session = { id, date, dayId: day.id, logs: [] };
     draft.sessions.push(session);
+  }
+  // reconcile: every exercise in the (possibly swapped/edited) day gets
+  // a pre-filled log — existing logs and their ticked sets are untouched
+  for (const pe of day.exercises) {
+    if (session.logs.some((l) => l.exerciseId === pe.exerciseId)) continue;
+    const advice = adviseFor(draft, pe);
+    session.logs.push({
+      exerciseId: pe.exerciseId,
+      sets: Array.from({ length: pe.workingSets }, () => ({
+        weight: advice.suggestedWeight ?? 0,
+        reps: pe.repsMin,
+        done: false,
+      })),
+    });
   }
   return session;
 }

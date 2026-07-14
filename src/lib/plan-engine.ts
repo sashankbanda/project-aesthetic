@@ -235,6 +235,39 @@ export function rotatePlanOrder(plan: WorkoutDay[], firstDayId: string): Workout
     .sort((a, b) => a.weekday - b.weekday);
 }
 
+/**
+ * Alternatives for one exercise slot — the "this machine is taken" fix.
+ * Same movement pattern (falling back to same primary muscle), limited
+ * to the user's equipment, excluding anything already in the day.
+ * Different-equipment options rank first: if the station's busy, the
+ * dumbbell version of the same movement is the answer.
+ */
+export function swapCandidates(
+  exerciseId: string,
+  day: WorkoutDay,
+  environment: TrainingProfile["environment"] = "gym",
+): Exercise[] {
+  const current = EXERCISES.find((e) => e.id === exerciseId);
+  if (!current) return [];
+  const allowed = new Set(ENV_EQUIPMENT[environment]);
+  const used = new Set(day.exercises.map((e) => e.exerciseId));
+  const diff = (e: Exercise) => Math.abs((e.difficulty ?? 2) - (current.difficulty ?? 2));
+  return EXERCISES.filter(
+    (e) =>
+      !used.has(e.id) &&
+      allowed.has(e.equipment) &&
+      (current.pattern ? e.pattern === current.pattern : e.primary === current.primary),
+  )
+    .sort(
+      (a, b) =>
+        Number(b.primary === current.primary) - Number(a.primary === current.primary) ||
+        diff(a) - diff(b) ||
+        Number(a.equipment === current.equipment) - Number(b.equipment === current.equipment) ||
+        (a.id < b.id ? -1 : 1),
+    )
+    .slice(0, 8);
+}
+
 // ---------- companions the UI consumes ----------
 
 /** safety notes to surface in the preview and on the plan — data, not medical advice */

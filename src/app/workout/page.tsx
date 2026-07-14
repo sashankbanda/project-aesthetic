@@ -11,8 +11,8 @@ import { Btn, Card, Meter, PageHead, Pill, SectionTitle, Stepper } from "@/compo
 import ActivityTracker from "@/components/activity-tracker";
 import { getState, todayStr, update, useApp } from "@/lib/store";
 import { buildWorkoutReceipt, shareCard } from "@/lib/share-card";
-import { adviseFor, historyFor, prFor } from "@/lib/overload";
-import { rotatePlanOrder } from "@/lib/plan-engine";
+import { adviseFor, historyFor, prFor, warmupRamp } from "@/lib/overload";
+import { rotatePlanOrder, swapCandidates } from "@/lib/plan-engine";
 import { Sparkline } from "@/components/charts";
 import { chime, haptic, unlockAudio } from "@/lib/fx";
 import { ensureSession, sessionId } from "@/lib/workout-session";
@@ -29,6 +29,7 @@ import {
   CheckCheck,
   ChevronDown,
   Clock,
+  Flame,
   Info,
   LogIn,
   Maximize2,
@@ -49,6 +50,10 @@ import {
 } from "lucide-react";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** stopwatch reading, clamped to a sane 1s–1h set duration */
+const secondsSince = (startedAt: number) =>
+  Math.min(3600, Math.max(1, Math.round((Date.now() - startedAt) / 1000)));
 
 export default function WorkoutPage() {
   return (
@@ -88,6 +93,8 @@ function WorkoutInner() {
   const gymPrefs = useGymPrefs();
   const [gym, setGym] = useState(false);
   const [reorder, setReorder] = useState(false);
+  // index of the exercise slot being swapped (machine taken, etc.)
+  const [swapIdx, setSwapIdx] = useState<number | null>(null);
   const [summary, setSummary] = useState<{
     report: SessionTimeReport | null;
     achievements: string[];
@@ -294,6 +301,7 @@ function WorkoutInner() {
               onAllDone={() => setOpenPick(null)} // flow: auto-advance to the next unfinished exercise
               onPr={(name, weight) => setPrToast({ id: Date.now(), name, weight })}
               onSetDone={(restS, name) => startRest(restS, name)}
+              onSwap={() => setSwapIdx(i)}
             />
           ))}
 
@@ -357,6 +365,56 @@ function WorkoutInner() {
                 }}
               />
             ))}
+        </ActionSheet>
+      )}
+
+      {/* swap sheet — this machine is taken, give me the same movement elsewhere */}
+      {swapIdx !== null && day.exercises[swapIdx] && (
+        <ActionSheet onClose={() => setSwapIdx(null)}>
+          <p className="px-2 pb-3 text-[12px] font-light leading-relaxed text-dim">
+            Station taken? These hit the same movement with your equipment — your plan updates, and
+            you can swap back the same way anytime.
+          </p>
+          {(() => {
+            const slot = day.exercises[swapIdx];
+            const candidates = swapCandidates(
+              slot.exerciseId,
+              day,
+              state.profile.training?.environment,
+            );
+            if (candidates.length === 0)
+              return (
+                <p className="px-2 pb-3 text-[13px] text-faint">
+                  No alternative covers this movement with your equipment.
+                </p>
+              );
+            return candidates.map((e) => (
+              <SheetBtn
+                key={e.id}
+                icon={<ArrowLeftRight size={17} />}
+                label={e.name}
+                sub={`${e.primary} · ${e.equipment}`}
+                onClick={() => {
+                  const oldId = slot.exerciseId;
+                  update((draft) => {
+                    const d = draft.plan.find((x) => x.id === day.id);
+                    const s = d?.exercises[swapIdx];
+                    if (!d || !s) return;
+                    s.exerciseId = e.id;
+                    // today's untouched pre-filled log goes with it; done sets stay
+                    const sess = draft.sessions.find((x) => x.id === sessionId(todayStr(), day.id));
+                    if (sess) {
+                      sess.logs = sess.logs.filter(
+                        (l) => l.exerciseId !== oldId || l.sets.some((x) => x.done),
+                      );
+                      ensureSession(draft, d);
+                    }
+                  });
+                  setSwapIdx(null);
+                }}
+              />
+            ));
+          })()}
         </ActionSheet>
       )}
 
@@ -789,6 +847,7 @@ function ExerciseCard({
   onAllDone,
   onPr,
   onSetDone,
+  onSwap,
 }: {
   planned: PlannedExercise;
   index: number;
@@ -799,6 +858,7 @@ function ExerciseCard({
   onAllDone: () => void;
   onPr: (name: string, weight: number) => void;
   onSetDone: (restSeconds: number, exerciseName: string) => void;
+  onSwap: () => void;
 }) {
   const state = useApp();
   const [showInfo, setShowInfo] = useState(false);
@@ -850,9 +910,7 @@ function ExerciseCard({
     const row = log?.sets[setIdx];
     const willBeDone = !(row?.done ?? false);
     const durationS =
-      willBeDone && timing?.setIdx === setIdx
-        ? Math.min(3600, Math.max(1, Math.round((Date.now() - timing.startedAt) / 1000)))
-        : undefined;
+      willBeDone && timing?.setIdx === setIdx ? secondsSince(timing.startedAt) : undefined;
     if (timing?.setIdx === setIdx) setTiming(null);
     patchSet(setIdx, {
       done: willBeDone,
@@ -877,6 +935,7 @@ function ExerciseCard({
 
   // pre-filled defaults shown before a session exists
   const defaultWeight = advice.suggestedWeight ?? 0;
+  const ramp = warmupRamp(ex, log?.sets[0]?.weight || defaultWeight);
 
   return (
     <div ref={cardRef} className={`card mb-3 overflow-hidden transition ${complete ? "border-good/25" : ""}`}>
@@ -929,6 +988,14 @@ function ExerciseCard({
             <div className="mt-2 flex items-center gap-1.5 text-[11px] text-faint">
               <Trophy size={12} /> PR: {pr.weight} kg × {pr.reps}
               <HistorySpark exerciseId={planned.exerciseId} />
+            </div>
+          )}
+
+          {/* warm-up ramp — bar first, then submaximal steps to the working weight */}
+          {!complete && planned.warmupSets > 0 && ramp.length > 0 && (
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-faint">
+              <Flame size={12} className="shrink-0" />
+              Warm-up: {ramp.map((s) => `${s.kg}×${s.reps}`).join(" → ")} → work sets
             </div>
           )}
 
@@ -1025,13 +1092,22 @@ function ExerciseCard({
             </div>
           )}
 
-          <button
-            className="pressable mt-3 flex items-center gap-1.5 text-xs font-semibold text-accent2"
-            onClick={() => setShowInfo(!showInfo)}
-          >
-            <Info size={13} />
-            {showInfo ? "Hide" : "Form guide, mistakes & alternatives"}
-          </button>
+          <div className="mt-3 flex items-center gap-5">
+            <button
+              className="pressable flex items-center gap-1.5 text-xs font-semibold text-accent2"
+              onClick={() => setShowInfo(!showInfo)}
+            >
+              <Info size={13} />
+              {showInfo ? "Hide" : "Form guide, mistakes & alternatives"}
+            </button>
+            <button
+              data-tour={index === 0 ? "train-swap" : undefined}
+              className="pressable flex shrink-0 items-center gap-1.5 text-xs font-semibold text-accent2"
+              onClick={onSwap}
+            >
+              <ArrowLeftRight size={13} /> Swap
+            </button>
+          </div>
           {showInfo && (
             <div className="mt-2 grid gap-2.5">
               <a

@@ -26,9 +26,17 @@ function PhotosInner() {
   const thisMonth = monthStr();
   const months = [...state.photos].sort((a, b) => (a.month < b.month ? 1 : -1));
   const current = months.find((p) => p.month === thisMonth);
-  const previous = months.find((p) => p.month !== thisMonth);
   const [compareAngle, setCompareAngle] = useState<Angle>("front");
   const [slider, setSlider] = useState(50);
+
+  // compare ANY two months — day 1 vs day 90 is the whole point of these photos
+  const withPhotos = months.filter((m) => ANGLES.some((a) => m[a]));
+  const [beforePick, setBeforePick] = useState<string | null>(null);
+  const [afterPick, setAfterPick] = useState<string | null>(null);
+  const after = withPhotos.find((m) => m.month === afterPick) ?? withPhotos[0];
+  const before =
+    withPhotos.find((m) => m.month === beforePick && m.month !== after?.month) ??
+    [...withPhotos].reverse().find((m) => m.month !== after?.month);
 
   const upload = (angle: Angle) => {
     const input = document.createElement("input");
@@ -118,8 +126,8 @@ function PhotosInner() {
         })}
       </div>
 
-      {/* comparison slider */}
-      {current && previous && current[compareAngle] && previous[compareAngle] ? (
+      {/* comparison slider — pick any two months */}
+      {withPhotos.length >= 2 && before && after && before.month !== after.month ? (
         <>
           <SectionTitle
             right={
@@ -138,37 +146,50 @@ function PhotosInner() {
               </div>
             }
           >
-            <GitCompareArrows size={17} className="text-accent2" /> {previous.month} vs {current.month}
+            <GitCompareArrows size={17} className="text-accent2" /> Compare
           </SectionTitle>
-          <Card>
-            <div className="relative mx-auto aspect-2/3 max-w-sm select-none overflow-hidden rounded-xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previous[compareAngle]} alt="before" className="absolute inset-0 h-full w-full object-cover" />
-              <div className="absolute inset-0 overflow-hidden" style={{ width: `${slider}%` }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={current[compareAngle]}
-                  alt="after"
-                  className="h-full w-full object-cover"
-                  style={{ width: `${10000 / slider}%`, maxWidth: "none" }}
-                />
-              </div>
-              <div className="absolute inset-y-0 w-0.5 bg-white/80" style={{ left: `${slider}%` }} />
-              <span className="absolute left-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] text-white">
-                {current.month}
-              </span>
-              <span className="absolute right-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] text-white">
-                {previous.month}
-              </span>
+          <Card data-tour="photos-compare">
+            <div className="mb-4 flex items-center gap-2.5">
+              <MonthSelect months={withPhotos} value={before.month} onChange={setBeforePick} />
+              <span className="text-xs text-faint">vs</span>
+              <MonthSelect months={withPhotos} value={after.month} onChange={setAfterPick} />
             </div>
-            <input
-              type="range"
-              min={2}
-              max={98}
-              value={slider}
-              onChange={(e) => setSlider(parseInt(e.target.value))}
-              className="mt-4 w-full accent-accent"
-            />
+            {before[compareAngle] && after[compareAngle] ? (
+              <>
+                <div className="relative mx-auto aspect-2/3 max-w-sm select-none overflow-hidden rounded-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={before[compareAngle]} alt="before" className="absolute inset-0 h-full w-full object-cover" />
+                  <div className="absolute inset-0 overflow-hidden" style={{ width: `${slider}%` }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={after[compareAngle]}
+                      alt="after"
+                      className="h-full w-full object-cover"
+                      style={{ width: `${10000 / slider}%`, maxWidth: "none" }}
+                    />
+                  </div>
+                  <div className="absolute inset-y-0 w-0.5 bg-white/80" style={{ left: `${slider}%` }} />
+                  <span className="absolute left-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] text-white">
+                    {after.month}
+                  </span>
+                  <span className="absolute right-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] text-white">
+                    {before.month}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={2}
+                  max={98}
+                  value={slider}
+                  onChange={(e) => setSlider(parseInt(e.target.value))}
+                  className="mt-4 w-full accent-accent"
+                />
+              </>
+            ) : (
+              <p className="py-6 text-center text-sm text-faint">
+                No {compareAngle} photo in both months — try another angle.
+              </p>
+            )}
           </Card>
           <PhysiqueDelta />
         </>
@@ -195,6 +216,31 @@ function PhotosInner() {
         </>
       )}
     </>
+  );
+}
+
+/** native select — no dropdown lib needed for a list of months */
+function MonthSelect({
+  months,
+  value,
+  onChange,
+}: {
+  months: PhotoSet[];
+  value: string;
+  onChange: (month: string) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="rounded-xl border border-line bg-card px-2.5 py-1.5 text-xs font-semibold text-ink"
+    >
+      {months.map((m) => (
+        <option key={m.month} value={m.month}>
+          {m.month}
+        </option>
+      ))}
+    </select>
   );
 }
 
