@@ -13,6 +13,7 @@ import type {
 } from "./types";
 
 import { LIBRARY_EXERCISES } from "./library";
+import { VIDEO_IDS } from "./video-ids";
 
 const yt = (q: string) =>
   `https://www.youtube.com/results?search_query=${encodeURIComponent(q + " proper form")}`;
@@ -591,7 +592,7 @@ const CURATED_TAGS: Record<string, Partial<Exercise>> = {
 export const EXERCISES: Exercise[] = [
   ...CURATED_EXERCISES.map((e) => ({ ...e, ...CURATED_TAGS[e.id] })),
   ...LIBRARY_EXERCISES,
-];
+].map((e) => ({ ...e, videoId: VIDEO_IDS[e.id] }));
 
 // ------------------------------------------------------------
 // Weekly plan — PPL×2 with weak-point bias.

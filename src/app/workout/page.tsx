@@ -17,6 +17,7 @@ import { Sparkline } from "@/components/charts";
 import { chime, haptic, unlockAudio } from "@/lib/fx";
 import { ensureSession, sessionId } from "@/lib/workout-session";
 import GymMode from "@/components/gym-mode";
+import LiteVideo from "@/components/lite-video";
 import { useGymPrefs } from "@/lib/gym-prefs";
 import { EXERCISE_MAP, ACHIEVEMENTS } from "@/lib/seed";
 import { evaluateAchievements } from "@/lib/stats";
@@ -434,7 +435,11 @@ function WorkoutInner() {
                 />
                 {swapPreview === e.id && (
                   <div className="border-t border-line/40 bg-elev px-4 py-4">
-                    <MuscleMap primary={e.primary} secondary={e.secondary} />
+                    {e.videoId ? (
+                      <LiteVideo videoId={e.videoId} title={`${e.name} — demo`} />
+                    ) : (
+                      <MuscleMap primary={e.primary} secondary={e.secondary} />
+                    )}
                     <ul className="mt-3 grid gap-1.5">
                       {e.cues.slice(0, 2).map((cue) => (
                         <li key={cue} className="flex items-start gap-2 text-[12px] leading-snug text-dim">
@@ -444,14 +449,16 @@ function WorkoutInner() {
                       ))}
                     </ul>
                     <div className="mt-3.5 flex gap-2.5">
-                      <a
-                        href={e.videoUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="pressable flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line bg-card2 py-2.5 text-[13px] font-medium"
-                      >
-                        <Play size={14} /> Watch demo
-                      </a>
+                      {!e.videoId && (
+                        <a
+                          href={e.videoUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="pressable flex flex-1 items-center justify-center gap-1.5 rounded-full border border-line bg-card2 py-2.5 text-[13px] font-medium"
+                        >
+                          <Play size={14} /> Watch demo
+                        </a>
+                      )}
                       <button
                         onClick={() => applySwap(e.id)}
                         className="pressable flex flex-1 items-center justify-center gap-1.5 rounded-full bg-grad py-2.5 text-[13px] font-bold text-white shadow-lg shadow-accent/30"
@@ -1161,14 +1168,18 @@ function ExerciseCard({
           </div>
           {showInfo && (
             <div className="mt-2 grid gap-2.5">
-              <a
-                href={ex.videoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="pressable flex items-center justify-center gap-2 rounded-full border border-line bg-card2 py-3 text-[13px] font-medium"
-              >
-                <Play size={15} /> Watch video demo
-              </a>
+              {ex.videoId ? (
+                <LiteVideo videoId={ex.videoId} title={`${ex.name} — demo`} />
+              ) : (
+                <a
+                  href={ex.videoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="pressable flex items-center justify-center gap-2 rounded-full border border-line bg-card2 py-3 text-[13px] font-medium"
+                >
+                  <Play size={15} /> Watch video demo
+                </a>
+              )}
               <MuscleMap primary={ex.primary} secondary={ex.secondary} />
               <ExerciseMedia ex={ex} />
               <InfoBlock icon={<Check size={12} />} title="Form cues" items={ex.cues} />

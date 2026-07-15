@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import Mounted from "@/components/mounted";
 import MuscleMap from "@/components/muscle-map";
+import LiteVideo from "@/components/lite-video";
 import ExerciseMedia from "@/components/exercise-media";
 import HomeAlt from "@/components/home-alt";
 import { Card, PageHead, Pill, inputCls } from "@/components/ui";
@@ -124,14 +125,18 @@ function ExerciseEntry({ ex }: { ex: Exercise }) {
       </button>
       {open && (
         <div className="grid gap-2.5 border-t border-line/40 px-4 pb-4 pt-3.5">
-          <a
-            href={ex.videoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="pressable flex items-center justify-center gap-2 rounded-full border border-line bg-card2 py-3 text-[13px] font-medium"
-          >
-            <Play size={15} /> Watch video demo
-          </a>
+          {ex.videoId ? (
+            <LiteVideo videoId={ex.videoId} title={`${ex.name} — demo`} />
+          ) : (
+            <a
+              href={ex.videoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="pressable flex items-center justify-center gap-2 rounded-full border border-line bg-card2 py-3 text-[13px] font-medium"
+            >
+              <Play size={15} /> Watch video demo
+            </a>
+          )}
           <MuscleMap primary={ex.primary} secondary={ex.secondary} />
           <ExerciseMedia ex={ex} />
           <Info icon={<Check size={12} />} title="Form cues" items={ex.cues} />

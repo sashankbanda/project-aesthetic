@@ -100,8 +100,10 @@ export interface Exercise {
     | "Band"
     | "Kettlebell"
     | "Pull-up Bar";
-  /** YouTube search URL — swap for real embeds later */
+  /** YouTube search URL — fallback when no curated video exists */
   videoUrl: string;
+  /** curated YouTube video ID — plays inline via the embed player */
+  videoId?: string;
   cues: string[];
   mistakes: string[];
   alternatives: string[];
