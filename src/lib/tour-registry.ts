@@ -44,6 +44,12 @@ export const TOUR_STOPS: TourStop[] = [
     title: "Two-second check-ins",
     text: "Water, sleep, steps and mood — everything logs with a single tap, and taps are reversible.",
   },
+  {
+    key: "home-plateau",
+    path: "/",
+    title: "Stall warnings",
+    text: "When a lift sits at the same weight for 3+ sessions with no rep gains, it shows up here with the fix — before frustration does.",
+  },
   // ---------- Train ----------
   {
     key: "train-strip",
@@ -56,6 +62,12 @@ export const TOUR_STOPS: TourStop[] = [
     path: "/workout",
     title: "Time the set itself",
     text: "Tap the stopwatch, lift, then tap ✓ — the set's real duration is recorded and the rest timer starts on its own.",
+  },
+  {
+    key: "train-strength",
+    path: "/workout",
+    title: "Are you getting stronger?",
+    text: "Progress opens the lift's full history — estimated 1RM curve, volume, every session. The proof, not the feeling.",
   },
   {
     key: "train-swap",
@@ -94,6 +106,12 @@ export const TOUR_STOPS: TourStop[] = [
     path: "/analytics",
     title: "Print the receipt",
     text: "Any workout becomes a shareable gym receipt — itemized lifts, PRs starred, volume paid in full.",
+  },
+  {
+    key: "analytics-habits",
+    path: "/analytics",
+    title: "Your habits, with a verdict",
+    text: "Sleep, water and steps from your daily check-ins — including how sleep the night before correlates with the workouts you actually complete.",
   },
   {
     key: "analytics-volume",

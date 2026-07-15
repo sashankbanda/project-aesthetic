@@ -1,17 +1,19 @@
 "use client";
+import { useState } from "react";
 import Mounted from "@/components/mounted";
 import ProgressNav from "@/components/progress-nav";
 import { MuscleHeatMap } from "@/components/muscle-map";
+import StrengthSheet from "@/components/strength-sheet";
 import { Card, PageHead, SectionTitle, Stat } from "@/components/ui";
-import { HBars } from "@/components/charts";
-import { ChartNoAxesColumn, Flame, HeartPulse, Share2, Timer, Trophy } from "lucide-react";
+import { HBars, Sparkline } from "@/components/charts";
+import { ChartNoAxesColumn, Droplets, Flame, Footprints, HeartPulse, Moon, Share2, Timer, Trophy } from "lucide-react";
 import { todayStr, useApp } from "@/lib/store";
 import { EXERCISE_MAP } from "@/lib/seed";
 import { completedDates, prFor } from "@/lib/overload";
 import { recentWeeks, recoveryHeatNow } from "@/lib/recap";
 import { buildWorkoutReceipt, shareCard } from "@/lib/share-card";
 import { analyzeSession, fmtDuration } from "@/lib/session-time";
-import type { MuscleGroup } from "@/lib/types";
+import type { AppState, MuscleGroup } from "@/lib/types";
 
 /** primary set = 1.0, secondary = 0.5 */
 function weeklyVolume(state: ReturnType<typeof useApp>): Map<MuscleGroup, number> {
@@ -75,6 +77,7 @@ export default function AnalyticsPage() {
 
 function AnalyticsInner() {
   const state = useApp();
+  const [lift, setLift] = useState<string | null>(null);
   const actual = weeklyVolume(state);
   const planned = plannedVolume(state);
   const hasData = actual.size > 0;
@@ -116,42 +119,51 @@ function AnalyticsInner() {
         <Stat label="Volume lifted" value={totalVolume >= 1000 ? `${(totalVolume / 1000).toFixed(1)}t` : `${totalVolume} kg`} />
       </div>
 
-      <SectionTitle>
-        <ChartNoAxesColumn size={17} className="text-accent2" />
-        {hasData ? "Last 7 days — sets per muscle" : "Planned weekly volume (log workouts to see actuals)"}
-      </SectionTitle>
-      <Card data-tour="analytics-volume">
-        <HBars data={rows} unit="" color="var(--color-viz1)" />
-        <p className="mt-4 text-xs leading-relaxed text-faint">
-          Rough guide: 10–20 weekly sets per priority muscle grows it; under 8 maintains.
-          The muscles your plan prioritizes should sit near the top of this chart.
-        </p>
-      </Card>
-
-      <RecoveryMap />
-      <ConsistencyGrid />
-      <RecentSessions />
-
-      {keyLifts(state).length > 0 && (
-        <>
+      {/* desktop: two-column flow; mobile: unchanged */}
+      <div className="md:columns-2 md:gap-5 [&>section]:break-inside-avoid">
+        <section>
           <SectionTitle>
-            <Trophy size={17} className="text-accent2" /> Key lift PRs
+            <ChartNoAxesColumn size={17} className="text-accent2" />
+            {hasData ? "Last 7 days — sets per muscle" : "Planned weekly volume (log workouts to see actuals)"}
           </SectionTitle>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {keyLifts(state).map(({ id, label }) => {
-              const pr = prFor(state, id);
-              return (
-                <Stat
-                  key={id}
-                  label={label}
-                  value={pr && pr.weight > 0 ? `${pr.weight} kg` : "—"}
-                  sub={pr && pr.weight > 0 ? `× ${pr.reps} reps` : "no lifts logged yet"}
-                />
-              );
-            })}
-          </div>
-        </>
-      )}
+          <Card data-tour="analytics-volume">
+            <HBars data={rows} unit="" color="var(--color-viz1)" />
+            <p className="mt-4 text-xs leading-relaxed text-faint">
+              Rough guide: 10–20 weekly sets per priority muscle grows it; under 8 maintains.
+              The muscles your plan prioritizes should sit near the top of this chart.
+            </p>
+          </Card>
+        </section>
+
+        <section><RecoveryMap /></section>
+        <section><ConsistencyGrid /></section>
+        <section><HabitsCard /></section>
+        <section><RecentSessions /></section>
+
+        {keyLifts(state).length > 0 && (
+          <section>
+            <SectionTitle>
+              <Trophy size={17} className="text-accent2" /> Key lift PRs — tap for the full curve
+            </SectionTitle>
+            <div className="grid grid-cols-2 gap-4">
+              {keyLifts(state).map(({ id, label }) => {
+                const pr = prFor(state, id);
+                return (
+                  <button key={id} className="pressable text-left" onClick={() => setLift(id)}>
+                    <Stat
+                      label={label}
+                      value={pr && pr.weight > 0 ? `${pr.weight} kg` : "—"}
+                      sub={pr && pr.weight > 0 ? `× ${pr.reps} reps` : "no lifts logged yet"}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </div>
+
+      {lift && <StrengthSheet exerciseId={lift} onClose={() => setLift(null)} />}
     </>
   );
 }
@@ -212,6 +224,109 @@ function ConsistencyGrid() {
           <span>12 weeks ago</span>
           <span>this week</span>
         </div>
+      </Card>
+    </>
+  );
+}
+
+// ---------- habits (check-in data, finally visible) ----------
+
+interface HabitStats {
+  sleep: number[];
+  water: number[];
+  steps: number[];
+  avgSleep: number;
+  avgWaterL: number;
+  avgSteps: number;
+  /** avg sleep before trained vs skipped days — null until both sides have 3+ data points */
+  link: { trained: number; skipped: number } | null;
+}
+
+function habitStats(state: AppState): HabitStats | null {
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const recBy = new Map(state.recovery.map((r) => [r.date, r]));
+
+  const dates: string[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(fmt(d));
+  }
+  const sleep = dates.map((d) => recBy.get(d)?.sleepH ?? 0);
+  const water = dates.map((d) => (recBy.get(d)?.waterMl ?? 0) / 1000);
+  const steps = dates.map((d) => (recBy.get(d)?.steps ?? 0) / 1000);
+  if (![...sleep, ...water, ...steps].some((v) => v > 0)) return null;
+
+  const avg = (arr: number[]) => {
+    const v = arr.filter((x) => x > 0);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0;
+  };
+
+  // sleep ↔ training over the last 28 days (rest days don't count as skipped)
+  const trained = completedDates(state.sessions);
+  const restDays = new Set(state.plan.filter((d) => d.isRest).map((d) => d.weekday));
+  const trainedSleep: number[] = [];
+  const skippedSleep: number[] = [];
+  for (let i = 1; i <= 28; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const s = recBy.get(fmt(d))?.sleepH;
+    if (!s) continue;
+    if (trained.has(fmt(d))) trainedSleep.push(s);
+    else if (!restDays.has(d.getDay())) skippedSleep.push(s);
+  }
+  const link =
+    trainedSleep.length >= 3 && skippedSleep.length >= 3
+      ? { trained: +avg(trainedSleep).toFixed(1), skipped: +avg(skippedSleep).toFixed(1) }
+      : null;
+
+  return { sleep, water, steps, avgSleep: avg(sleep), avgWaterL: avg(water), avgSteps: avg(steps), link };
+}
+
+/** Sleep, water and steps — the data the Home check-ins collect, shown back with a verdict. */
+function HabitsCard() {
+  const state = useApp();
+  const h = habitStats(state);
+  if (!h) return null;
+
+  const rows = [
+    { icon: <Moon size={14} />, label: "Sleep", avg: h.avgSleep, unit: "h", values: h.sleep, goal: state.profile.sleepGoalH },
+    { icon: <Droplets size={14} />, label: "Water", avg: h.avgWaterL, unit: "L", values: h.water, goal: state.profile.waterGoalMl / 1000 },
+    { icon: <Footprints size={14} />, label: "Steps", avg: h.avgSteps, unit: "k", values: h.steps, goal: state.profile.stepsGoal / 1000 },
+  ].filter((r) => r.avg > 0);
+
+  return (
+    <>
+      <SectionTitle>
+        <Moon size={17} className="text-accent2" /> Habits — last 14 days
+      </SectionTitle>
+      <Card className="!p-4" data-tour="analytics-habits">
+        <div className="grid gap-2.5">
+          {rows.map((r) => (
+            <div key={r.label} className="flex items-center gap-2.5 text-[13px]">
+              <span className="flex w-[74px] shrink-0 items-center gap-1.5 text-dim">
+                {r.icon} {r.label}
+              </span>
+              <span className={`w-16 shrink-0 font-bold tabular-nums ${r.avg >= r.goal ? "text-good" : ""}`}>
+                {r.avg.toFixed(1)}{r.unit}
+              </span>
+              <Sparkline values={r.values} />
+              <span className="ml-auto text-[11px] text-faint tabular-nums">goal {r.goal.toFixed(r.unit === "h" ? 1 : 0)}{r.unit}</span>
+            </div>
+          ))}
+        </div>
+        {h.link && (
+          <p className={`mt-3.5 rounded-2xl border px-3.5 py-2.5 text-[12px] leading-relaxed ${
+            h.link.trained > h.link.skipped
+              ? "border-good/25 bg-good/10 text-good"
+              : "border-line bg-elev text-dim"
+          }`}>
+            Nights before workouts you completed: <span className="font-bold">{h.link.trained}h</span> sleep on
+            average. Before days you skipped: <span className="font-bold">{h.link.skipped}h</span>.
+            {h.link.trained > h.link.skipped ? " Sleep is doing half your training for you." : ""}
+          </p>
+        )}
       </Card>
     </>
   );

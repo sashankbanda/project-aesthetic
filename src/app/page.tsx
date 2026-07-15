@@ -8,7 +8,7 @@ import { Card, Meter, Pill, SectionTitle, Tile } from "@/components/ui";
 import { FLAME_FRAMES, GlyphMatrix, MOOD_GLYPHS } from "@/components/glyph";
 import { Sparkline } from "@/components/charts";
 import { useApp, todayStr, update } from "@/lib/store";
-import { streakInfo, weeklyCompletion } from "@/lib/overload";
+import { detectPlateaus, isDeloadWeek, streakInfo, weeklyCompletion } from "@/lib/overload";
 import { latestMeasurement, proteinForDate } from "@/lib/stats";
 import { EXERCISE_MAP } from "@/lib/seed";
 import { challengeProgress } from "@/lib/challenges";
@@ -25,6 +25,7 @@ import {
   Moon,
   Smile,
   Target,
+  TrendingDown,
   X,
 } from "lucide-react";
 
@@ -161,10 +162,13 @@ function HomeInner() {
         />
       </div>
 
+      {/* desktop: cards flow into two columns; mobile: unchanged single column */}
+      <div className="md:columns-2 md:gap-4 [&>*]:break-inside-avoid">
       <InstallNudge />
       <ChallengeCard />
       <RecapCard />
       <DeloadBanner />
+      <PlateauCard />
 
       {/* week + milestone */}
       <Card className="mt-4 !p-4">
@@ -180,6 +184,16 @@ function HomeInner() {
           <span className="text-dim">Next milestone:</span>
           <span className="font-semibold">{profile.nextMilestone}</span>
         </div>
+        {state.roadmap.length > 0 && (
+          <Link href="/roadmap" className="pressable mt-2 flex items-center gap-2 text-[13px]">
+            <Flag size={14} className="shrink-0 text-accent2" />
+            <span className="text-dim">Roadmap:</span>
+            <span className="font-semibold tabular-nums">
+              {state.roadmap.filter((g) => g.done).length}/{state.roadmap.length} done
+            </span>
+            <ArrowRight size={13} className="text-faint" />
+          </Link>
+        )}
         {weights.length >= 2 && (
           <div className="mt-2 flex items-center gap-2">
             <span className="text-[11px] text-faint">weight trend</span>
@@ -192,22 +206,27 @@ function HomeInner() {
       <SyncNudge />
 
       {/* daily check-in — 3 taps, no page hopping */}
-      <SectionTitle>Daily check-in</SectionTitle>
-      <div data-tour="checkin">
-        <CheckInCard />
-      </div>
+      <section className="break-inside-avoid">
+        <SectionTitle>Daily check-in</SectionTitle>
+        <div data-tour="checkin">
+          <CheckInCard />
+        </div>
+      </section>
 
       {/* coach focus — where this week's plan actually puts its volume */}
-      <SectionTitle>Coach&apos;s focus</SectionTitle>
-      <Card className="!p-4">
-        <div className="flex flex-wrap gap-2">
-          {prioritiesFor(state).map((p, i) => (
-            <Pill key={p} tone={i < 4 ? "accent" : "default"}>
-              <span className="font-bold">{i + 1}</span> {p}
-            </Pill>
-          ))}
-        </div>
-      </Card>
+      <section className="break-inside-avoid">
+        <SectionTitle>Coach&apos;s focus</SectionTitle>
+        <Card className="!p-4">
+          <div className="flex flex-wrap gap-2">
+            {prioritiesFor(state).map((p, i) => (
+              <Pill key={p} tone={i < 4 ? "accent" : "default"}>
+                <span className="font-bold">{i + 1}</span> {p}
+              </Pill>
+            ))}
+          </div>
+        </Card>
+      </section>
+      </div>
     </>
   );
 }
@@ -323,19 +342,44 @@ function RecapCard() {
 /** Every Nth week per the plan's template: back off so the next block hits harder. */
 function DeloadBanner() {
   const state = useApp();
-  const t = state.profile.training;
-  if (!t?.planStartedAt || !t.deloadWeeks) return null;
-  const weeks = Math.floor(
-    (new Date(todayStr()).getTime() - new Date(t.planStartedAt).getTime()) / (7 * 86400000),
-  );
-  if (weeks <= 0 || (weeks + 1) % t.deloadWeeks !== 0) return null;
+  if (!isDeloadWeek(state)) return null;
   return (
     <Card className="mt-4 flex items-center gap-3 !p-4 border-warn/25">
       <Battery size={17} className="shrink-0 text-warn" />
       <div className="text-[13px] leading-snug">
         <span className="font-semibold">Deload week.</span>{" "}
-        <span className="text-dim">Halve your working sets, keep every rep crisp — growth happens in the recovery.</span>
+        <span className="text-dim">
+          Every exercise card suggests ~65% loads this week — move crisp, leave fresh. Growth happens in the recovery.
+        </span>
       </div>
+    </Card>
+  );
+}
+
+/** stalled lifts — same top weight 3+ sessions, reps not climbing */
+function PlateauCard() {
+  const state = useApp();
+  if (isDeloadWeek(state)) return null; // backing off IS the plan this week
+  const stalls = detectPlateaus(state).slice(0, 2);
+  if (stalls.length === 0) return null;
+  return (
+    <Card className="mt-4 !p-4" data-tour="home-plateau">
+      <div className="label-mono mb-2 text-faint">Stalled lifts</div>
+      {stalls.map((p) => {
+        const name = EXERCISE_MAP[p.exerciseId]?.name ?? p.exerciseId;
+        return (
+          <div key={p.exerciseId} className="flex items-start gap-2.5 py-1 text-[13px] leading-snug">
+            <TrendingDown size={15} className="mt-0.5 shrink-0 text-warn" />
+            <span>
+              <span className="font-semibold">{name}</span>{" "}
+              <span className="text-dim">
+                stuck at {p.weight} kg for {p.exposures} sessions — next time drop ~10% and rebuild,
+                or swap the variation from the exercise card.
+              </span>
+            </span>
+          </div>
+        );
+      })}
     </Card>
   );
 }

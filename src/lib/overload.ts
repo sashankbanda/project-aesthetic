@@ -8,10 +8,22 @@ import type { AppState, Exercise, ExerciseLog, PlannedExercise, WorkoutSession }
 import { EXERCISE_MAP } from "./seed";
 
 export interface OverloadAdvice {
-  kind: "increase" | "reps" | "hold" | "start";
+  kind: "increase" | "reps" | "hold" | "start" | "deload";
   message: string;
   /** suggested working weight for next session */
   suggestedWeight?: number;
+}
+
+/**
+ * Deload week — same formula the Home banner uses: every Nth week
+ * of the plan (N from the goal template). During it the advice
+ * engine backs off instead of pushing weight.
+ */
+export function isDeloadWeek(state: AppState, now: Date = new Date()): boolean {
+  const t = state.profile.training;
+  if (!t?.planStartedAt || !t.deloadWeeks) return false;
+  const weeks = Math.floor((now.getTime() - new Date(t.planStartedAt).getTime()) / (7 * 86400000));
+  return weeks > 0 && (weeks + 1) % t.deloadWeeks === 0;
 }
 
 /** All logged instances of an exercise, most recent first. */
@@ -83,6 +95,16 @@ export function adviseFor(
   const weight = Math.max(...doneSets.map((s) => s.weight));
   const inc = ex?.incrementKg ?? 2.5;
 
+  // deload week overrides progression — the banner and the cards must agree
+  if (isDeloadWeek(state) && weight > 0) {
+    const light = Math.max(inc, Math.round((weight * 0.65) / inc) * inc);
+    return {
+      kind: "deload",
+      message: `Deload week — drop to ~${light} kg, crisp reps, stop far from failure. Progression resumes next week.`,
+      suggestedWeight: light,
+    };
+  }
+
   const allAtMax = doneSets.length >= planned.workingSets && doneSets.every((s) => s.reps >= planned.repsMax);
   const allAtMin = doneSets.every((s) => s.reps >= planned.repsMin);
 
@@ -119,6 +141,47 @@ export function adviseFor(
     message: `Some sets fell under ${planned.repsMin} reps @ ${weight} kg — repeat this weight and own every rep before moving up.`,
     suggestedWeight: weight,
   };
+}
+
+// ---------- plateau detection ----------
+
+export interface Plateau {
+  exerciseId: string;
+  /** the weight the lift is stuck at */
+  weight: number;
+  /** consecutive sessions at that top weight with no rep progress */
+  exposures: number;
+}
+
+/**
+ * A lift is stalled when its last 3+ sessions all topped out at the
+ * same weight AND the best rep count at that weight didn't climb.
+ * Only exercises in the current plan are scanned — history from
+ * abandoned plans shouldn't nag.
+ */
+export function detectPlateaus(state: AppState): Plateau[] {
+  const inPlan = new Set<string>();
+  for (const d of state.plan) {
+    if (d.isRest) continue;
+    for (const pe of d.exercises) inPlan.add(pe.exerciseId);
+  }
+  const topW = (log: ExerciseLog) => Math.max(0, ...log.sets.filter((s) => s.done).map((s) => s.weight));
+  const bestReps = (log: ExerciseLog, w: number) =>
+    Math.max(0, ...log.sets.filter((s) => s.done && s.weight === w).map((s) => s.reps));
+
+  const out: Plateau[] = [];
+  for (const id of inPlan) {
+    const hist = historyFor(state, id); // newest first
+    if (hist.length < 3) continue;
+    const w = topW(hist[0].log);
+    if (w <= 0) continue;
+    let n = 0;
+    while (n < hist.length && n < 6 && topW(hist[n].log) === w) n++;
+    if (n < 3) continue;
+    if (bestReps(hist[0].log, w) > bestReps(hist[n - 1].log, w)) continue; // reps still climbing — that IS progress
+    out.push({ exerciseId: id, weight: w, exposures: n });
+  }
+  return out.sort((a, b) => b.exposures - a.exposures);
 }
 
 /**

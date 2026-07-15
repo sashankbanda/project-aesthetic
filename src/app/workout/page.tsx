@@ -18,6 +18,7 @@ import { chime, haptic, unlockAudio } from "@/lib/fx";
 import { ensureSession, sessionId } from "@/lib/workout-session";
 import GymMode from "@/components/gym-mode";
 import LiteVideo from "@/components/lite-video";
+import StrengthSheet from "@/components/strength-sheet";
 import { useGymPrefs } from "@/lib/gym-prefs";
 import { EXERCISE_MAP, ACHIEVEMENTS } from "@/lib/seed";
 import { evaluateAchievements } from "@/lib/stats";
@@ -26,6 +27,8 @@ import type { AppState, PlannedExercise, WorkoutDay, WorkoutSession } from "@/li
 import {
   AlertTriangle,
   ArrowLeftRight,
+  Battery,
+  ChartNoAxesColumn,
   Check,
   CheckCheck,
   ChevronDown,
@@ -921,6 +924,9 @@ function ExerciseCard({
   const state = useApp();
   const [showInfo, setShowInfo] = useState(false);
   const [editingSet, setEditingSet] = useState<number | null>(null);
+  const [strengthOpen, setStrengthOpen] = useState(false);
+  // null = not editing; string = draft text
+  const [noteEdit, setNoteEdit] = useState<string | null>(null);
   // set stopwatch: start before the set, stop via ✓ — real duration gets recorded
   const [timing, setTiming] = useState<{ setIdx: number; startedAt: number } | null>(null);
   const [elapsed, setElapsed] = useState(0);
@@ -994,6 +1000,7 @@ function ExerciseCard({
   // pre-filled defaults shown before a session exists
   const defaultWeight = advice.suggestedWeight ?? 0;
   const ramp = warmupRamp(ex, log?.sets[0]?.weight || defaultWeight);
+  const myNote = state.exerciseNotes?.[planned.exerciseId] ?? "";
 
   return (
     <div ref={cardRef} className={`card mb-3 overflow-hidden transition ${complete ? "border-good/25" : ""}`}>
@@ -1027,13 +1034,17 @@ function ExerciseCard({
             className={`mt-3.5 flex items-start gap-2.5 rounded-2xl border px-3.5 py-2.5 text-[13px] leading-snug ${
               advice.kind === "increase"
                 ? "border-accent/40 bg-accent/10 text-(--accent-soft)"
-                : advice.kind === "hold"
-                  ? "border-line bg-card2 text-warn"
-                  : "border-line bg-card2 text-dim"
+                : advice.kind === "deload"
+                  ? "border-warn/40 bg-warn/10 text-warn"
+                  : advice.kind === "hold"
+                    ? "border-line bg-card2 text-warn"
+                    : "border-line bg-card2 text-dim"
             }`}
           >
             {advice.kind === "increase" ? (
               <TrendingUp size={16} className="mt-0.5 shrink-0" />
+            ) : advice.kind === "deload" ? (
+              <Battery size={16} className="mt-0.5 shrink-0" />
             ) : advice.kind === "hold" ? (
               <Pause size={16} className="mt-0.5 shrink-0" />
             ) : (
@@ -1055,6 +1066,49 @@ function ExerciseCard({
               <Flame size={12} className="shrink-0" />
               Warm-up: {ramp.map((s) => `${s.kg}×${s.reps}`).join(" → ")} → work sets
             </div>
+          )}
+
+          {/* the user's own note — seat position, grip, the stuff you always forget */}
+          {noteEdit !== null ? (
+            <div className="mt-2.5">
+              <textarea
+                autoFocus
+                value={noteEdit}
+                onChange={(e) => setNoteEdit(e.target.value)}
+                maxLength={500}
+                rows={2}
+                placeholder="Seat height, grip width, machine number…"
+                className="w-full rounded-2xl border border-line bg-elev px-3.5 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent"
+              />
+              <div className="mt-1 flex justify-end gap-2">
+                <button className="pressable px-3 py-1.5 text-xs font-semibold text-faint" onClick={() => setNoteEdit(null)}>
+                  Cancel
+                </button>
+                <button
+                  className="pressable rounded-full bg-grad px-4 py-1.5 text-xs font-bold text-white"
+                  onClick={() => {
+                    const text = noteEdit.trim().slice(0, 500);
+                    update((draft) => {
+                      if (text) draft.exerciseNotes[planned.exerciseId] = text;
+                      else delete draft.exerciseNotes[planned.exerciseId];
+                    });
+                    setNoteEdit(null);
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          ) : (
+            myNote && (
+              <button
+                onClick={() => setNoteEdit(myNote)}
+                className="pressable mt-2.5 flex w-full items-start gap-2 rounded-2xl border border-accent2/25 bg-elev px-3.5 py-2.5 text-left text-[13px] text-dim"
+              >
+                <StickyNote size={14} className="mt-0.5 shrink-0 text-accent2" />
+                {myNote}
+              </button>
+            )
           )}
 
           {/* set rows — ONE TAP to log */}
@@ -1151,13 +1205,13 @@ function ExerciseCard({
             </div>
           )}
 
-          <div className="mt-3 flex items-center gap-5">
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
             <button
               className="pressable flex items-center gap-1.5 text-xs font-semibold text-accent2"
               onClick={() => setShowInfo(!showInfo)}
             >
               <Info size={13} />
-              {showInfo ? "Hide" : "Form guide, mistakes & alternatives"}
+              {showInfo ? "Hide" : "Form guide"}
             </button>
             <button
               data-tour={index === 0 ? "train-swap" : undefined}
@@ -1166,6 +1220,21 @@ function ExerciseCard({
             >
               <ArrowLeftRight size={13} /> Swap
             </button>
+            <button
+              data-tour={index === 0 ? "train-strength" : undefined}
+              className="pressable flex shrink-0 items-center gap-1.5 text-xs font-semibold text-accent2"
+              onClick={() => setStrengthOpen(true)}
+            >
+              <ChartNoAxesColumn size={13} /> Progress
+            </button>
+            {!myNote && noteEdit === null && (
+              <button
+                className="pressable flex shrink-0 items-center gap-1.5 text-xs font-semibold text-accent2"
+                onClick={() => setNoteEdit("")}
+              >
+                <StickyNote size={13} /> Note
+              </button>
+            )}
           </div>
           {showInfo && (
             <div className="mt-2 grid gap-2.5">
@@ -1197,6 +1266,7 @@ function ExerciseCard({
           )}
         </div>
       )}
+      {strengthOpen && <StrengthSheet exerciseId={planned.exerciseId} onClose={() => setStrengthOpen(false)} />}
     </div>
   );
 }

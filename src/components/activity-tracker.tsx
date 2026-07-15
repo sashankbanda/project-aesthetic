@@ -11,6 +11,7 @@ import DotNumber from "./dot-number";
 import { Card } from "./ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { haptic } from "@/lib/fx";
+import { toastUndo } from "./undo-toast";
 import { fmtClock } from "@/lib/session-time";
 
 /** starter suggestions until the user's own history takes over */
@@ -70,10 +71,19 @@ export default function ActivityTracker() {
     });
   };
 
-  const remove = (id: string) =>
+  const remove = (id: string) => {
+    const entry = (state.activities ?? []).find((a) => a.id === id);
     update((draft) => {
       draft.activities = draft.activities.filter((a) => a.id !== id);
     });
+    if (entry) {
+      toastUndo(`Deleted ${entry.name}`, () =>
+        update((draft) => {
+          draft.activities.push(entry);
+        }),
+      );
+    }
+  };
 
   const todays = (state.activities ?? []).filter((a) => a.date === today);
   const hh = Math.floor(elapsed / 3600);

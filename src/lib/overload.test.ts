@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { streakInfo, warmupRamp } from "./overload";
+import { detectPlateaus, isDeloadWeek, streakInfo, warmupRamp } from "./overload";
 import type { AppState, Exercise } from "./types";
 
 /** minimal state: 7 training days a week, sessions completed on the given dates */
@@ -47,6 +47,53 @@ describe("streak shields", () => {
   it("today still pending never breaks the streak", () => {
     const state = stateWith(range(10, 13));
     expect(streakInfo(state, mar(14)).streak).toBe(4);
+  });
+});
+
+describe("isDeloadWeek", () => {
+  const stateAt = (planStartedAt: string): AppState =>
+    ({ profile: { training: { planStartedAt, deloadWeeks: 6 } }, plan: [], sessions: [] }) as unknown as AppState;
+
+  it("fires on every 6th week of the plan, not before", () => {
+    // week 6 = days 35–41 after start
+    expect(isDeloadWeek(stateAt("2026-03-01"), new Date("2026-04-06T12:00:00"))).toBe(true); // day 36
+    expect(isDeloadWeek(stateAt("2026-03-01"), new Date("2026-03-20T12:00:00"))).toBe(false); // week 3
+    expect(isDeloadWeek(stateAt("2026-03-01"), new Date("2026-03-03T12:00:00"))).toBe(false); // week 1
+  });
+
+  it("off when the plan has no deload config", () => {
+    expect(isDeloadWeek({ profile: {}, plan: [], sessions: [] } as unknown as AppState)).toBe(false);
+  });
+});
+
+describe("detectPlateaus", () => {
+  const sessionWith = (date: string, weight: number, reps: number) => ({
+    id: `${date}_d1`,
+    date,
+    dayId: "d1",
+    completedAt: `${date}T10:00:00Z`,
+    logs: [{ exerciseId: "flat-bb-bench", sets: [{ weight, reps, done: true }] }],
+  });
+  const base = (sessions: unknown[]): AppState =>
+    ({
+      profile: {},
+      plan: [{ id: "d1", weekday: 1, exercises: [{ exerciseId: "flat-bb-bench", workingSets: 3 }] }],
+      sessions,
+    }) as unknown as AppState;
+
+  it("flags 3 sessions stuck at the same weight and reps", () => {
+    const state = base([sessionWith("2026-03-01", 60, 8), sessionWith("2026-03-08", 60, 8), sessionWith("2026-03-15", 60, 8)]);
+    expect(detectPlateaus(state)).toEqual([{ exerciseId: "flat-bb-bench", weight: 60, exposures: 3 }]);
+  });
+
+  it("rep progress at the same weight is NOT a plateau", () => {
+    const state = base([sessionWith("2026-03-01", 60, 6), sessionWith("2026-03-08", 60, 7), sessionWith("2026-03-15", 60, 8)]);
+    expect(detectPlateaus(state)).toEqual([]);
+  });
+
+  it("weight progress is NOT a plateau", () => {
+    const state = base([sessionWith("2026-03-01", 55, 8), sessionWith("2026-03-08", 57.5, 8), sessionWith("2026-03-15", 60, 8)]);
+    expect(detectPlateaus(state)).toEqual([]);
   });
 });
 

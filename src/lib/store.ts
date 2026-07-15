@@ -22,6 +22,7 @@ function load(): AppState {
     cache = raw ? (JSON.parse(raw) as AppState) : createInitialState();
     // fields added after a user's first install default in here
     if (!Array.isArray(cache.activities)) cache.activities = [];
+    if (!cache.exerciseNotes) cache.exerciseNotes = {};
   } catch {
     cache = createInitialState();
   }

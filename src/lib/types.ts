@@ -302,6 +302,8 @@ export interface AppState {
   activities: ActivityEntry[];
   /** the active challenge, if any */
   challenge?: ChallengeState;
+  /** the user's own per-exercise notes (seat position, grip…) — exerciseId → text */
+  exerciseNotes: Record<string, string>;
   /** achievementId → ISO date unlocked */
   unlocked: Record<string, string>;
 }

@@ -79,6 +79,8 @@ model Profile {
   training         Json?
   /// active ChallengeState (30/60/90-day arcs) — syncs across devices
   challenge        Json?
+  /// user's own per-exercise notes (exerciseId → text) — syncs across devices
+  exerciseNotes    Json?
   /// last-write-wins timestamp for whole-state sync
   stateModifiedAt  DateTime @default(now())
 

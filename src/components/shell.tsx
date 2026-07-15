@@ -23,6 +23,7 @@ import {
 import { exportState, importState } from "@/lib/store";
 import OnboardingGate from "./onboarding";
 import AppTour from "./app-tour";
+import UndoToast from "./undo-toast";
 
 /** Bottom tab bar — the app's primary navigation. */
 const TABS = [
@@ -97,6 +98,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <OnboardingGate />
       {/* guided tours — auto quick-tour after onboarding, restartable from More */}
       <AppTour />
+      {/* undo snackbar for destructive taps */}
+      <UndoToast />
 
       {/* desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-60 flex-col gap-1 border-r border-line/50 bg-elev/80 p-5 backdrop-blur-md md:flex">

@@ -146,6 +146,7 @@ export const SyncStateSchema = z.object({
   roadmap: z.array(RoadmapGoalSchema).max(500),
   activities: z.array(ActivityEntrySchema).max(10000).default([]),
   challenge: ChallengeStateSchema.optional(),
+  exerciseNotes: z.record(z.string().max(80), z.string().max(500)).default({}),
   photoMeta: z.array(PhotoMetaSchema).max(500),
   unlocked: z.record(z.string(), z.string()),
 });

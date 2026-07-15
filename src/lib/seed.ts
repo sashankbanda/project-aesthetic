@@ -792,6 +792,7 @@ export function createInitialState(): AppState {
     photos: [],
     roadmap: DEFAULT_ROADMAP,
     activities: [],
+    exerciseNotes: {},
     unlocked: {},
   };
 }

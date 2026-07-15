@@ -5,6 +5,7 @@ import { CAMERA_FRAMES, GlyphMatrix } from "@/components/glyph";
 import ProgressNav from "@/components/progress-nav";
 import { Card, PageHead, SectionTitle } from "@/components/ui";
 import { generateFramedPhoto, saveToDevice } from "@/lib/photo-frame";
+import { toastUndo } from "@/components/undo-toast";
 import { latestMeasurement } from "@/lib/stats";
 import { monthStr, update, useApp } from "@/lib/store";
 import type { Measurement, PhotoSet } from "@/lib/types";
@@ -67,11 +68,21 @@ function PhotosInner() {
     input.click();
   };
 
-  const removePhoto = (month: string, angle: Angle) =>
+  const removePhoto = (month: string, angle: Angle) => {
+    const prev = state.photos.find((p) => p.month === month)?.[angle];
     update((draft) => {
       const set = draft.photos.find((p) => p.month === month);
       if (set) set[angle] = undefined;
     });
+    if (prev) {
+      toastUndo(`Removed ${angle} photo`, () =>
+        update((draft) => {
+          const set = draft.photos.find((p) => p.month === month);
+          if (set) set[angle] = prev;
+        }),
+      );
+    }
+  };
 
   return (
     <>

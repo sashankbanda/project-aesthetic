@@ -132,5 +132,24 @@ export async function GET(request: Request) {
     }
   }
 
+  // 3) photo day — first Saturday of the month at 10:00 IST, matching
+  //    the Photos page's "first week of every month" ritual
+  const dayOfMonth = Number(date.slice(8, 10));
+  if (weekday === 6 && dayOfMonth <= 7 && hour === 10) {
+    const photoSubs = await prisma.pushSubscription.findMany({
+      where: { nudges: true, reminderHour: { not: hour } },
+    });
+    for (const sub of photoSubs) {
+      await deliver(
+        sub,
+        JSON.stringify({
+          title: "Photo day 📸",
+          body: "Same spot, same pose, same light. Future-you wants this month on record.",
+          url: "/photos",
+        }),
+      );
+    }
+  }
+
   return NextResponse.json({ sent, cleaned, hour });
 }
