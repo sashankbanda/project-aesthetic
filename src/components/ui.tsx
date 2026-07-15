@@ -258,20 +258,115 @@ export function Segmented<T extends string>({
  * adjust values. Tap for one step; press and hold to repeat,
  * accelerating after a second (nobody taps 50 times to reach 166 cm).
  */
+/** one row of the scroll wheel */
+const WHEEL_ITEM_H = 32;
+
+/**
+ * Vertical scroll-snap number wheel — flick to a value instead of
+ * mashing +/-. Native scrolling + CSS snap, no picker library.
+ * Programmatic positioning is instant, so the settle handler only
+ * ever commits genuine user scrolls.
+ */
+function Wheel({
+  value,
+  values,
+  format,
+  suffix,
+  onChange,
+}: {
+  value: number;
+  values: number[];
+  format: (v: number) => string;
+  suffix: string;
+  onChange: (v: number) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const settleT = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const valueRef = useRef(value);
+  useEffect(() => {
+    valueRef.current = value;
+  });
+
+  const nearestIdx = (v: number) => {
+    let best = 0;
+    for (let i = 1; i < values.length; i++) {
+      if (Math.abs(values[i] - v) < Math.abs(values[best] - v)) best = i;
+    }
+    return best;
+  };
+
+  // keep the wheel centered on the value (mount, +/- presses, external edits)
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const target = nearestIdx(value) * WHEEL_ITEM_H;
+    if (Math.abs(el.scrollTop - target) > 1) el.scrollTop = target;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, values]);
+
+  const onScroll = () => {
+    if (settleT.current) clearTimeout(settleT.current);
+    settleT.current = setTimeout(() => {
+      const el = ref.current;
+      if (!el) return;
+      const idx = Math.min(values.length - 1, Math.max(0, Math.round(el.scrollTop / WHEEL_ITEM_H)));
+      if (values[idx] !== valueRef.current) onChange(values[idx]);
+    }, 120);
+  };
+
+  return (
+    <div className="relative">
+      <div
+        ref={ref}
+        onScroll={onScroll}
+        className="h-24 w-[76px] snap-y snap-mandatory overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(transparent,black_30%,black_70%,transparent)]"
+      >
+        <div style={{ height: WHEEL_ITEM_H }} />
+        {values.map((v) => (
+          <button
+            key={v}
+            onClick={() => onChange(v)}
+            tabIndex={-1}
+            className={`flex w-full snap-center items-baseline justify-center gap-0.5 tabular-nums transition-colors ${
+              v === value ? "text-[15px] font-bold text-ink" : "text-[13px] font-medium text-faint"
+            }`}
+            style={{ height: WHEEL_ITEM_H }}
+          >
+            {format(v)}
+            {suffix && <span className="text-[10px] font-medium text-faint">{suffix}</span>}
+          </button>
+        ))}
+        <div style={{ height: WHEEL_ITEM_H }} />
+      </div>
+      {/* center guides */}
+      <div
+        className="pointer-events-none absolute inset-x-0 border-y border-line/80"
+        style={{ top: WHEEL_ITEM_H, height: WHEEL_ITEM_H }}
+      />
+    </div>
+  );
+}
+
 export function Stepper({
   value,
   onChange,
   step = 1,
   min = 0,
+  max,
   format = (v: number) => String(v),
   suffix = "",
+  wheel = true,
 }: {
   value: number;
   onChange: (v: number) => void;
   step?: number;
   min?: number;
+  /** upper bound of the scroll wheel (defaults to 200 steps above min) */
+  max?: number;
   format?: (v: number) => string;
   suffix?: string;
+  /** set false where a slider already covers scrubbing (e.g. the wizard) */
+  wheel?: boolean;
 }) {
   const stopRef = useRef<() => void>(() => {});
   useEffect(() => () => stopRef.current(), []);
@@ -308,6 +403,15 @@ export function Stepper({
   const btnCls =
     "pressable grid h-11 w-11 touch-none select-none place-items-center rounded-xl border border-line bg-elev text-dim";
 
+  // wheel values: min → max on the step grid (bounded so the DOM stays light)
+  const top = max ?? min + step * 200;
+  const wheelValues: number[] = [];
+  if (wheel) {
+    for (let v = min; v <= top + 1e-9 && wheelValues.length <= 400; v += step) {
+      wheelValues.push(+v.toFixed(2));
+    }
+  }
+
   return (
     <div className="flex items-center justify-center gap-2">
       <button
@@ -321,10 +425,14 @@ export function Stepper({
       >
         <Minus size={16} />
       </button>
-      <div className="min-w-[72px] text-center text-[15px] font-bold tabular-nums">
-        {format(value)}
-        {suffix && <span className="ml-0.5 text-[11px] font-medium text-faint">{suffix}</span>}
-      </div>
+      {wheel ? (
+        <Wheel value={value} values={wheelValues} format={format} suffix={suffix} onChange={onChange} />
+      ) : (
+        <div className="min-w-[72px] text-center text-[15px] font-bold tabular-nums">
+          {format(value)}
+          {suffix && <span className="ml-0.5 text-[11px] font-medium text-faint">{suffix}</span>}
+        </div>
+      )}
       <button
         onPointerDown={() => begin(1)}
         onPointerUp={stop}

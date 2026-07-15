@@ -628,7 +628,7 @@ function NumberField({
         aria-label={unit}
         className="w-full"
       />
-      <Stepper value={value} min={min} step={step} format={format} onChange={(v) => onChange(clamp(v))} />
+      <Stepper value={value} min={min} step={step} format={format} wheel={false} onChange={(v) => onChange(clamp(v))} />
     </div>
   );
 }

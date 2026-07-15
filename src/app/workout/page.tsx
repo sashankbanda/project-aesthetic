@@ -21,7 +21,7 @@ import LiteVideo from "@/components/lite-video";
 import { useGymPrefs } from "@/lib/gym-prefs";
 import { EXERCISE_MAP, ACHIEVEMENTS } from "@/lib/seed";
 import { evaluateAchievements } from "@/lib/stats";
-import { analyzeSession, fmtDuration, type SessionTimeReport } from "@/lib/session-time";
+import { analyzeSession, fmtClock, fmtDuration, type SessionTimeReport } from "@/lib/session-time";
 import type { AppState, PlannedExercise, WorkoutDay, WorkoutSession } from "@/lib/types";
 import {
   AlertTriangle,
@@ -1082,7 +1082,7 @@ function ExerciseCard({
                           {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, "0")}
                         </span>
                       ) : done && row?.durationS ? (
-                        <span className="ml-2 text-[10px] font-medium text-faint">{row.durationS}s</span>
+                        <span className="ml-2 text-[10px] font-medium text-faint">{fmtClock(row.durationS)}</span>
                       ) : (
                         <span className="ml-2 text-[10px] font-medium text-faint">{editing ? "done" : "edit"}</span>
                       )}
@@ -1125,13 +1125,14 @@ function ExerciseCard({
                         <Stepper
                           value={weight}
                           step={ex.incrementKg || 2.5}
+                          max={400}
                           onChange={(v) => patchSet(si, { weight: v })}
                           suffix="kg"
                         />
                       </div>
                       <div className="flex items-center justify-between gap-3">
                         <div className="text-[10px] font-bold uppercase tracking-wide text-faint">Reps</div>
-                        <Stepper value={reps} step={1} onChange={(v) => patchSet(si, { reps: v })} />
+                        <Stepper value={reps} step={1} max={100} onChange={(v) => patchSet(si, { reps: v })} />
                       </div>
                     </div>
                   )}

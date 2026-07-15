@@ -11,7 +11,7 @@ import DotNumber from "./dot-number";
 import { Card } from "./ui";
 import { todayStr, update, useApp } from "@/lib/store";
 import { haptic } from "@/lib/fx";
-import { fmtDuration } from "@/lib/session-time";
+import { fmtClock } from "@/lib/session-time";
 
 /** starter suggestions until the user's own history takes over */
 const STARTERS = ["Stretching", "Plank", "Dead Hang", "Walking", "Foam Rolling"];
@@ -76,8 +76,10 @@ export default function ActivityTracker() {
     });
 
   const todays = (state.activities ?? []).filter((a) => a.date === today);
-  const mm = Math.floor(elapsed / 60);
+  const hh = Math.floor(elapsed / 3600);
+  const mm = Math.floor((elapsed % 3600) / 60);
   const ss = String(elapsed % 60).padStart(2, "0");
+  const clock = hh > 0 ? `${hh}:${String(mm).padStart(2, "0")}:${ss}` : `${mm}:${ss}`;
   const running = startedAt !== null;
 
   return (
@@ -85,7 +87,7 @@ export default function ActivityTracker() {
       {running ? (
         <div className="flex flex-col items-center gap-4 py-4">
           <div className="label-mono text-faint">{name.trim()}</div>
-          <DotNumber value={`${mm}:${ss}`} cell={mm >= 10 ? 5 : 6.5} ghost={false} />
+          <DotNumber value={clock} cell={hh > 0 || mm >= 10 ? 5 : 6.5} ghost={false} />
           <button
             onClick={stop}
             className="bg-grad pressable flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-medium text-white shadow-lg shadow-accent/25"
@@ -135,7 +137,7 @@ export default function ActivityTracker() {
           {todays.map((a) => (
             <div key={a.id} className="flex items-center gap-2.5 text-[13px]">
               <span className="min-w-0 flex-1 truncate text-dim">{a.name}</span>
-              <span className="font-bold tabular-nums">{fmtDuration(a.seconds)}</span>
+              <span className="font-bold tabular-nums">{fmtClock(a.seconds)}</span>
               <button onClick={() => remove(a.id)} aria-label={`delete ${a.name}`} className="pressable p-1 text-faint">
                 <X size={13} />
               </button>

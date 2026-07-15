@@ -127,8 +127,19 @@ export function analyzeSession(
   };
 }
 
+/** whole-session estimates — minute precision is honest here */
 export function fmtDuration(seconds: number): string {
   const m = Math.round(seconds / 60);
   if (m < 60) return `${m}m`;
   return `${Math.floor(m / 60)}h ${m % 60}m`;
+}
+
+/** exact recordings (stopwatch) — never round seconds away: 45s · 12m 30s · 1h 5m */
+export function fmtClock(seconds: number): string {
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return s % 60 ? `${m}m ${s % 60}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  return m % 60 ? `${h}h ${m % 60}m` : `${h}h`;
 }
