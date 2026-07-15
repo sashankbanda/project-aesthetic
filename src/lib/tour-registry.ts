@@ -76,6 +76,12 @@ export const TOUR_STOPS: TourStop[] = [
     text: "Swap any exercise for one that hits the same movement with your equipment — and swap back the same way.",
   },
   {
+    key: "train-voice",
+    path: "/workout",
+    title: "Say it, don't type it",
+    text: "Editing a set? Tap the mic and say “60 kilos, 8 reps” — hands stay chalky. (Appears on browsers with speech recognition.)",
+  },
+  {
     key: "train-reorder",
     path: "/workout",
     title: "Dodge the Monday crowd",

@@ -15,10 +15,11 @@ import { adviseFor, historyFor, prFor, warmupRamp } from "@/lib/overload";
 import { rotatePlanOrder, swapCandidates } from "@/lib/plan-engine";
 import { Sparkline } from "@/components/charts";
 import { chime, haptic, unlockAudio } from "@/lib/fx";
-import { ensureSession, sessionId } from "@/lib/workout-session";
+import { ensureSession, lastRepsFor, sessionId } from "@/lib/workout-session";
 import GymMode from "@/components/gym-mode";
 import LiteVideo from "@/components/lite-video";
 import StrengthSheet from "@/components/strength-sheet";
+import VoiceFill from "@/components/voice-fill";
 import { useGymPrefs } from "@/lib/gym-prefs";
 import { EXERCISE_MAP, ACHIEVEMENTS } from "@/lib/seed";
 import { evaluateAchievements } from "@/lib/stats";
@@ -964,7 +965,18 @@ function ExerciseCard({
       const s = ensureSession(draft, day);
       const l = s.logs.find((x) => x.exerciseId === planned.exerciseId);
       const target = l?.sets[setIdx];
-      if (target) Object.assign(target, patch);
+      if (!l || !target) return;
+      // cascade: later sets still holding the value you just changed
+      // (i.e. untouched prefills) follow along — one edit, not three
+      for (const key of ["weight", "reps"] as const) {
+        const next = patch[key];
+        if (next === undefined) continue;
+        const old = target[key];
+        for (let j = setIdx + 1; j < l.sets.length; j++) {
+          if (!l.sets[j].done && l.sets[j][key] === old) l.sets[j][key] = next;
+        }
+      }
+      Object.assign(target, patch);
       // ticking any set auto checks you in
       if (patch.done && !s.startedAt) s.startedAt = new Date().toISOString();
     });
@@ -1112,11 +1124,18 @@ function ExerciseCard({
           )}
 
           {/* set rows — ONE TAP to log */}
+          {index === 0 && doneCount === 0 && advice.kind !== "start" && (
+            <p className="mt-3 text-[11px] leading-snug text-faint">
+              Weight and reps below are pre-filled from your last session — if nothing changed,
+              the ✓ is all you tap. Edit one set and the rest follow.
+            </p>
+          )}
           <div className="mt-3 flex flex-col gap-2">
             {Array.from({ length: planned.workingSets }, (_, si) => {
               const row = log?.sets[si];
               const weight = row?.weight ?? defaultWeight;
-              const reps = row?.reps ?? planned.repsMin;
+              // display must match what ensureSession will log on the first ✓
+              const reps = row?.reps ?? lastRepsFor(state, planned.exerciseId, si) ?? planned.repsMin;
               const done = row?.done ?? false;
               const editing = editingSet === si;
               const isTiming = timing?.setIdx === si;
@@ -1174,6 +1193,12 @@ function ExerciseCard({
                   {editing && (
                     // stacked rows — side-by-side steppers overflow narrow phones
                     <div className="grid gap-2.5 border-t border-line/40 px-3.5 py-3">
+                      <VoiceFill
+                        onFill={({ weight: w, reps: r }) => {
+                          if (w !== undefined) patchSet(si, { weight: w });
+                          if (r !== undefined) patchSet(si, { reps: r });
+                        }}
+                      />
                       <div className="flex items-center justify-between gap-3">
                         <div className="text-[10px] font-bold uppercase tracking-wide text-faint">Weight</div>
                         <Stepper

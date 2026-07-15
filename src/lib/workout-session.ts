@@ -1,7 +1,14 @@
 // Session helpers shared by the workout tracker and Gym Mode.
 import type { AppState, WorkoutDay, WorkoutSession } from "./types";
-import { adviseFor } from "./overload";
+import { adviseFor, historyFor } from "./overload";
 import { todayStr } from "./store";
+
+/** reps the user actually did for this set slot last session — the best prefill there is */
+export function lastRepsFor(state: AppState, exerciseId: string, setIdx: number): number | undefined {
+  const last = historyFor(state, exerciseId)[0]?.log;
+  const set = last?.sets[setIdx];
+  return set?.done ? set.reps : undefined;
+}
 
 export function sessionId(date: string, dayId: string) {
   return `${date}_${dayId}`;
@@ -27,9 +34,11 @@ export function ensureSession(draft: AppState, day: WorkoutDay): WorkoutSession 
     const advice = adviseFor(draft, pe);
     session.logs.push({
       exerciseId: pe.exerciseId,
-      sets: Array.from({ length: pe.workingSets }, () => ({
+      // reps come from what the user ACTUALLY did last time, per set —
+      // so a bare ✓ tap logs the truth, not the template's minimum
+      sets: Array.from({ length: pe.workingSets }, (_, i) => ({
         weight: advice.suggestedWeight ?? 0,
-        reps: pe.repsMin,
+        reps: lastRepsFor(draft, pe.exerciseId, i) ?? pe.repsMin,
         done: false,
       })),
     });
