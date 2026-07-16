@@ -24,6 +24,7 @@ import { exportState, importState } from "@/lib/store";
 import OnboardingGate from "./onboarding";
 import AppTour from "./app-tour";
 import UndoToast from "./undo-toast";
+import RestTimerHost from "./rest-timer";
 
 /** Bottom tab bar — the app's primary navigation. */
 const TABS = [
@@ -100,6 +101,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <AppTour />
       {/* undo snackbar for destructive taps */}
       <UndoToast />
+      {/* rest countdown pill — follows the user across pages, never blocks */}
+      <RestTimerHost />
 
       {/* desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-60 flex-col gap-1 border-r border-line/50 bg-elev/80 p-5 backdrop-blur-md md:flex">

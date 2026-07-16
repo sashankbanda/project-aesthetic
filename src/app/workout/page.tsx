@@ -14,7 +14,8 @@ import { buildWorkoutReceipt, shareCard } from "@/lib/share-card";
 import { adviseFor, historyFor, prFor, warmupRamp } from "@/lib/overload";
 import { rotatePlanOrder, swapCandidates } from "@/lib/plan-engine";
 import { Sparkline } from "@/components/charts";
-import { chime, haptic, unlockAudio } from "@/lib/fx";
+import { haptic, unlockAudio } from "@/lib/fx";
+import { skipRest, startRest } from "@/components/rest-timer";
 import { ensureSession, lastRepsFor, sessionId } from "@/lib/workout-session";
 import GymMode from "@/components/gym-mode";
 import LiteVideo from "@/components/lite-video";
@@ -70,13 +71,6 @@ export default function WorkoutPage() {
   );
 }
 
-/** Rest request — the pill component owns the actual countdown. */
-interface RestRequest {
-  id: number;
-  seconds: number;
-  label: string;
-}
-
 /**
  * After an undo, revoke achievements that were unlocked TODAY and no
  * longer hold (a mistaken "Finish" shouldn't leave badges behind).
@@ -93,7 +87,6 @@ function pruneTodayAchievements(draft: AppState) {
 function WorkoutInner() {
   const state = useApp();
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
-  const [rest, setRest] = useState<RestRequest | null>(null);
   // accordion: null = auto (first incomplete), -1 = all closed, n = user's pick
   const [openPick, setOpenPick] = useState<number | null>(null);
   const [prToast, setPrToast] = useState<{ id: number; name: string; weight: number } | null>(null);
@@ -128,11 +121,6 @@ function WorkoutInner() {
     return (log?.sets.filter((s) => s.done).length ?? 0) < pe.workingSets;
   });
   const openIndex = openPick ?? (firstIncomplete === -1 ? null : firstIncomplete);
-
-  const startRest = (seconds: number, label: string) =>
-    setRest({ id: Date.now(), seconds, label });
-
-  const skipRest = () => setRest(null);
 
   const checkIn = () => {
     haptic();
@@ -497,16 +485,7 @@ function WorkoutInner() {
         </ActionSheet>
       )}
 
-      {/* rest timer popup — portal to <body>, always centered in view */}
-      {rest && (
-        <RestPopup
-          key={rest.id}
-          seconds={rest.seconds}
-          label={rest.label}
-          onDone={() => setRest(null)}
-          onSkip={skipRest}
-        />
-      )}
+      {/* rest countdown lives in the global pill (Shell) — nothing modal here */}
 
       {/* checkout summary */}
       {summary && (
@@ -774,124 +753,6 @@ function SessionSummary({
         >
           <Undo2 size={13} /> Finished by mistake? Reopen workout
         </button>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
-// ------------------------------------------------------------
-/**
- * Centered rest-timer popup. Rendered via portal to <body> so it can
- * never be trapped inside a scrolling/transformed container. Owns its
- * interval so the page doesn't re-render every tick, counts against a
- * wall-clock deadline (accurate through phone lock), and alerts with
- * chime + vibration when the rest is over.
- */
-function RestPopup({
-  seconds,
-  label,
-  onDone,
-  onSkip,
-}: {
-  seconds: number;
-  label: string;
-  onDone: () => void;
-  onSkip: () => void;
-}) {
-  const [left, setLeft] = useState(seconds);
-  const [total, setTotal] = useState(seconds);
-  const [finished, setFinished] = useState(false);
-  const deadlineRef = useRef(0);
-  const done = useRef(onDone);
-
-  useEffect(() => {
-    done.current = onDone;
-  }, [onDone]);
-
-  useEffect(() => {
-    deadlineRef.current = Date.now() + seconds * 1000;
-    const timer = setInterval(() => {
-      const remaining = Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000));
-      setLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(timer);
-        chime();
-        haptic([250, 120, 250]);
-        setFinished(true);
-        setTimeout(() => done.current(), 1600);
-      }
-    }, 250);
-    return () => clearInterval(timer);
-  }, [seconds]);
-
-  const addThirty = () => {
-    deadlineRef.current += 30_000;
-    setTotal((t) => t + 30);
-    setLeft((l) => l + 30);
-  };
-
-  const R = 62;
-  const C = 2 * Math.PI * R;
-  const mm = Math.floor(left / 60);
-  const ss = String(left % 60).padStart(2, "0");
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100] grid place-items-center p-6">
-      <button
-        aria-label="dismiss"
-        className="absolute inset-0 bg-black/60 backdrop-blur-md"
-        onClick={onSkip}
-      />
-      <div className="rise-in tile-dark relative w-full max-w-xs p-7 text-center shadow-2xl shadow-black/80">
-        <div className="dot-texture text-ink" />
-        <div className="relative">
-          <div className="relative mx-auto grid h-40 w-40 place-items-center">
-            {/* dotted progress ring — accent sweeps as rest elapses */}
-            <svg viewBox="0 0 140 140" className="absolute inset-0 -rotate-90">
-              <circle
-                cx="70" cy="70" r={R} fill="none"
-                stroke="color-mix(in srgb, var(--color-ink) 14%, transparent)" strokeWidth="3"
-                strokeLinecap="round" strokeDasharray="0.5 7.5"
-              />
-              <circle
-                cx="70" cy="70" r={R} fill="none"
-                stroke={finished ? "var(--color-accent)" : "var(--color-ink)"}
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray={`${C * (finished ? 1 : left / total)} ${C}`}
-                style={{ transition: "stroke-dasharray 0.25s linear, stroke 0.3s" }}
-              />
-            </svg>
-            {finished ? (
-              <GlyphMatrix frames={CHECK_FRAMES} fps={5} cell={7} color="var(--color-accent)" />
-            ) : (
-              <DotNumber value={`${mm}:${ss}`} cell={mm >= 10 ? 4.5 : 5.5} ghost={false} />
-            )}
-          </div>
-
-          <div className="mt-4 text-[15px] font-medium">
-            {finished ? "Rest over — go" : "Resting"}
-          </div>
-          <div className="label-mono mt-1 truncate text-[9px] text-faint">{label}</div>
-
-          {!finished && (
-            <div className="mt-6 flex gap-2.5">
-              <button
-                onClick={addThirty}
-                className="pressable flex-1 rounded-full border border-line bg-card2 py-3 text-sm font-medium text-ink"
-              >
-                +30s
-              </button>
-              <button
-                onClick={onSkip}
-                className="bg-grad pressable flex-1 rounded-full py-3 text-sm font-medium text-white shadow-lg shadow-accent/25"
-              >
-                Skip
-              </button>
-            </div>
-          )}
-        </div>
       </div>
     </div>,
     document.body,
