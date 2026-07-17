@@ -46,6 +46,8 @@ export default function RestTimerHost() {
   const active = useSyncExternalStore(subscribe, () => rest, () => null);
   const [left, setLeft] = useState(0);
   const [finished, setFinished] = useState(false);
+  // enters BIG so starting is unmissable, then shrinks to the pill
+  const [intro, setIntro] = useState(false);
 
   useEffect(() => {
     if (!active) return;
@@ -57,7 +59,7 @@ export default function RestTimerHost() {
       chime();
       haptic([250, 120, 250]);
       setFinished(true);
-      setTimeout(skipRest, 3000);
+      setTimeout(skipRest, 3500);
     };
     const timer = setInterval(tick, 250);
     const reset = () => setFinished(false);
@@ -66,59 +68,104 @@ export default function RestTimerHost() {
     return () => clearInterval(timer);
   }, [active]);
 
+  const activeId = active?.id;
+  useEffect(() => {
+    if (activeId === undefined) return;
+    const show = () => setIntro(true);
+    show();
+    const t = setTimeout(() => setIntro(false), 2500);
+    return () => clearTimeout(t);
+  }, [activeId]);
+
   if (!active) return null;
 
   const mm = Math.floor(left / 60);
   const ss = String(left % 60).padStart(2, "0");
-  const R = 13;
+  const big = intro || finished;
+  const R = big ? 24 : 13;
+  const box = big ? 56 : 32;
   const C = 2 * Math.PI * R;
   const ratio = active.total > 0 ? left / active.total : 0;
 
+  const ring = (
+    <svg width={box} height={box} viewBox={`0 0 ${box} ${box}`} className="-rotate-90 shrink-0">
+      <circle cx={box / 2} cy={box / 2} r={R} fill="none" stroke="var(--color-line)" strokeWidth="3" />
+      <circle
+        cx={box / 2} cy={box / 2} r={R} fill="none"
+        stroke="var(--color-accent)" strokeWidth="3" strokeLinecap="round"
+        strokeDasharray={`${C * ratio} ${C}`}
+        style={{ transition: "stroke-dasharray 0.25s linear" }}
+      />
+    </svg>
+  );
+
   return createPortal(
     <div className="pointer-events-none fixed inset-x-0 bottom-[104px] z-[90] flex justify-center px-5 md:bottom-8">
-      <div
-        className={`pointer-events-auto rise-in flex max-w-full items-center gap-2.5 rounded-full border py-1.5 pl-2 pr-1.5 shadow-xl backdrop-blur-md transition-colors ${
-          finished
-            ? "animate-pulse border-accent bg-accent text-white shadow-accent/40"
-            : "border-line bg-card/95 shadow-black/30"
-        }`}
-      >
-        {finished ? (
-          <button onClick={skipRest} className="pressable px-3 py-1 text-[13px] font-bold">
-            Rest over — go!
-          </button>
-        ) : (
-          <>
-            <svg width="32" height="32" viewBox="0 0 32 32" className="-rotate-90 shrink-0">
-              <circle cx="16" cy="16" r={R} fill="none" stroke="var(--color-line)" strokeWidth="2.5" />
-              <circle
-                cx="16" cy="16" r={R} fill="none"
-                stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round"
-                strokeDasharray={`${C * ratio} ${C}`}
-                style={{ transition: "stroke-dasharray 0.25s linear" }}
-              />
-            </svg>
-            <span className="text-[15px] font-bold tabular-nums">
+      {finished ? (
+        // unmissable finish — large accent card, tap anywhere on it to dismiss
+        <button
+          key="done"
+          onClick={skipRest}
+          className="pointer-events-auto rise-in animate-pulse flex items-center gap-3 rounded-3xl border border-accent bg-accent px-6 py-4 text-white shadow-xl shadow-accent/40"
+        >
+          <span className="text-[17px] font-bold">Rest over — go!</span>
+        </button>
+      ) : intro ? (
+        // large entrance (~2.5s): you SEE the timer begin, then it shrinks
+        <div
+          key="intro"
+          className="pointer-events-auto rise-in flex items-center gap-4 rounded-3xl border border-accent/40 bg-card/95 px-5 py-4 shadow-xl shadow-accent/20 backdrop-blur-md"
+        >
+          {ring}
+          <div className="min-w-0">
+            <div className="text-[22px] font-bold leading-none tabular-nums">
               {mm}:{ss}
-            </span>
-            <span className="label-mono max-w-[96px] truncate text-[8px] text-faint">{active.label}</span>
-            <button
-              onClick={addThirty}
-              aria-label="add 30 seconds"
-              className="pressable flex h-8 shrink-0 items-center gap-0.5 rounded-full border border-line bg-elev px-2.5 text-[11px] font-bold text-dim"
-            >
-              <Plus size={11} strokeWidth={3} />30s
-            </button>
-            <button
-              onClick={skipRest}
-              aria-label="skip rest"
-              className="pressable grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-elev text-faint"
-            >
-              <X size={13} />
-            </button>
-          </>
-        )}
-      </div>
+            </div>
+            <div className="label-mono mt-1.5 truncate text-[9px] text-faint">
+              Resting · {active.label}
+            </div>
+          </div>
+          <button
+            onClick={addThirty}
+            aria-label="add 30 seconds"
+            className="pressable flex h-9 shrink-0 items-center gap-0.5 rounded-full border border-line bg-elev px-3 text-[12px] font-bold text-dim"
+          >
+            <Plus size={12} strokeWidth={3} />30s
+          </button>
+          <button
+            onClick={skipRest}
+            aria-label="skip rest"
+            className="pressable grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line bg-elev text-faint"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ) : (
+        <div
+          key="pill"
+          className="pointer-events-auto rise-in flex max-w-full items-center gap-2.5 rounded-full border border-line bg-card/95 py-1.5 pl-2 pr-1.5 shadow-xl shadow-black/30 backdrop-blur-md"
+        >
+          {ring}
+          <span className="text-[15px] font-bold tabular-nums">
+            {mm}:{ss}
+          </span>
+          <span className="label-mono max-w-[96px] truncate text-[8px] text-faint">{active.label}</span>
+          <button
+            onClick={addThirty}
+            aria-label="add 30 seconds"
+            className="pressable flex h-8 shrink-0 items-center gap-0.5 rounded-full border border-line bg-elev px-2.5 text-[11px] font-bold text-dim"
+          >
+            <Plus size={11} strokeWidth={3} />30s
+          </button>
+          <button
+            onClick={skipRest}
+            aria-label="skip rest"
+            className="pressable grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-elev text-faint"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      )}
     </div>,
     document.body,
   );
